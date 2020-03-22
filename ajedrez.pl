@@ -54,8 +54,64 @@ valido(Tablero) :- validarPosiciones(Tablero, []), numeroPiezas(Tablero, blancas
 
 /********************* THIRD PART (I SKIPPED THE SECOND, I HATE PRINTING STUFF THAT WAY)************************/
 
+libre(_, _, []).
+libre(X, Y, [peon(_, X2, Y2)|T]) :- [X, Y]  \= [X2, Y2] , libre(X, Y, T).
+libre(X, Y, [torre(_, X2, Y2)|T]) :- [X, Y]  \= [X2, Y2] , libre(X, Y, T).
+libre(X, Y, [caballo(_, X2, Y2)|T]) :- [X, Y]  \= [X2, Y2] , libre(X, Y, T).
+libre(X, Y, [alfil(_, X2, Y2)|T]) :- [X, Y]  \= [X2, Y2] , libre(X, Y, T).
+libre(X, Y, [dama(_, X2, Y2)|T]) :- [X, Y]  \= [X2, Y2] , libre(X, Y, T).
+libre(X, Y, [rey(_, X2, Y2)|T]) :- [X, Y]  \= [X2, Y2] , libre(X, Y, T).
+
+actualizarTablero(X, Y, X2, Y2, [peon(J, X, Y)|T], Actual) :- Actual = [peon(J, X2, Y2)|T].  
+actualizarTablero(X, Y, X2, Y2, [torre(J, X, Y)|T], Actual) :- Actual = [torre(J, X2, Y2)|T].
+actualizarTablero(X, Y, X2, Y2, [caballo(J, X, Y)|T], Actual) :- Actual = [caballo(J, X2, Y2)|T].   
+actualizarTablero(X, Y, X2, Y2, [alfil(J, X, Y)|T], Actual) :- Actual = [alfil(J, X2, Y2)|T].  
+actualizarTablero(X, Y, X2, Y2, [dama(J, X, Y)|T], Actual) :- Actual = [dama(J, X2, Y2)|T].  
+actualizarTablero(X, Y, X2, Y2, [rey(J, X, Y)|T], Actual) :- Actual = [rey(J, X2, Y2)|T].
+actualizarTablero(X, Y, X2, Y2, [H|T], Actual) :- actualizarTablero(X, Y, X2, Y2, T, Actual2), Actual = [H|Actual2].   
+
 /*Unifies [X, Y] with the coordinate's of one of the player's rooks*/
 buscarTorre(Jugador, [torre(Jugador, X, Y)|_], [X, Y]).
 buscarTorre(Jugador, [_|T], Torre) :- buscarTorre(Jugador, T, Torre).
 
-mover(Jugador,Anterior,Actual) :- buscarTorre(Jugador, Anterior, Torre), moverTorre(Jugador, Torre, 1, Anterior, Actual).
+/*To do: Esto no da como válido un movimiento de comerse una pieza*/
+
+mover(Jugador,Anterior,Actual) :- buscarTorre(Jugador, Anterior, Torre), moverTorre(Jugador, Torre, 0, Anterior, Actual).
+
+moverTorre(Jugador, [X, Y], Desp, Anterior, Actual) :- Desp2 is Desp + 1, X2 is X + Desp2, coordenadas(X2, Y), 
+                                                       libre(X2, Y, Anterior),
+                                                       moverTorreVMa(Jugador, [X, Y], [X2, Y], Desp2, Anterior, Actual).
+moverTorre(Jugador, [X, Y], Desp, Anterior, Actual) :- Desp2 is Desp + 1, X2 is X - Desp2, coordenadas(X2, Y), 
+                                                       libre(X2, Y, Anterior), 
+                                                       moverTorreVMe(Jugador, [X, Y], [X2, Y], Desp2, Anterior, Actual).
+moverTorre(Jugador, [X, Y], Desp, Anterior, Actual) :- Desp2 is Desp + 1, Y2 is Y + Desp2, coordenadas(X, Y2), 
+                                                       libre(X, Y2, Anterior), 
+                                                       moverTorreHMa(Jugador, [X, Y], [X, Y2], Desp2, Anterior, Actual).
+moverTorre(Jugador, [X, Y], Desp, Anterior, Actual) :- Desp2 is Desp + 1, Y2 is Y - Desp2, coordenadas(X, Y2), 
+                                                       libre(X, Y2, Anterior),
+                                                       moverTorreHMe(Jugador, [X, Y], [X, Y2], Desp2, Anterior, Actual).
+
+
+moverTorreVMa(_, [X, Y], [X2, Y2], _, Anterior, Actual)   :- actualizarTablero(X, Y, X2, Y2, Anterior, Actual).
+moverTorreVMa(Jugador, [X, Y], _, Desp, Anterior, Actual) :- Desp2 is Desp + 1, X2 is X + Desp2, coordenadas(X2, Y), 
+                                                             libre(X2, Y, Anterior), 
+                                                             moverTorreVMa(Jugador, [X, Y], [X2, Y], Desp2, Anterior, Actual).
+
+moverTorreVMe(_, [X, Y], [X2, Y2], _, Anterior, Actual)   :- actualizarTablero(X, Y, X2, Y2, Anterior, Actual).
+moverTorreVMe(Jugador, [X, Y], _, Desp, Anterior, Actual) :- Desp2 is Desp + 1, X2 is X - Desp2, coordenadas(X2, Y), 
+                                                             libre(X2, Y, Anterior), 
+                                                             moverTorreVMe(Jugador, [X, Y], [X2, Y], Desp2, Anterior, Actual).
+
+moverTorreHMa(_, [X, Y], [X2, Y2], _, Anterior, Actual)   :- actualizarTablero(X, Y, X2, Y2, Anterior, Actual).
+moverTorreHMa(Jugador, [X, Y], _, Desp, Anterior, Actual) :- Desp2 is Desp + 1, Y2 is Y + Desp2, coordenadas(X, Y2), 
+                                                             libre(X, Y2, Anterior), 
+                                                             moverTorreHMa(Jugador, [X, Y], [X, Y2], Desp2, Anterior, Actual).
+
+moverTorreHMe(_, [X, Y], [X2, Y2], _, Anterior, Actual)   :- actualizarTablero(X, Y, X2, Y2, Anterior, Actual).
+moverTorreHMe(Jugador, [X, Y], _, Desp, Anterior, Actual) :- Desp2 is Desp + 1, Y2 is Y - Desp2, coordenadas(X, Y2), 
+                                                             libre(X, Y2, Anterior),
+                                                             moverTorreHMe(Jugador, [X, Y], [X, Y2], Desp2, Anterior, Actual).
+
+
+/* moverTorre(negras, [1,1], 0, [torre(negras,1,1),peon(negras,2,2),peon(negras,2,4),rey(negras,1,4),
+caballo(negras,4,6),rey(blancas,8,5),peon(blancas,7,5),dama(blancas,6,4)], Actual).*/
