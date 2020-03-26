@@ -90,8 +90,15 @@ actualizarTablero(X, Y, X2, Y2, [dama(J, X, Y)|T], Actual) :- Actual = [dama(J, 
 actualizarTablero(X, Y, X2, Y2, [rey(J, X, Y)|T], Actual) :- Actual = [rey(J, X2, Y2)|T].
 actualizarTablero(X, Y, X2, Y2, [H|T], Actual) :- actualizarTablero(X, Y, X2, Y2, T, Actual2), Actual = [H|Actual2]. 
 
-/*Analyzes if a given square is free or in use by the rival player. If its free it uses the appropiate predicate to
-update the board or continue checking in the same direction. If it's in use by the rival player, it updates the board*/
+/*The following functions analyze if a given square is free or in use by the rival player. If its free it uses the appropiate predicate to
+update the board or continue checking in the same direction. If it's in use by the rival player, unifies the updated board*/
+
+/*VMa: Vertical Más
+  VMe: Vertical Menos
+  HMa: Horizonal Más
+  HNe: Horizontal Negativo
+*/
+
 analizarCasillasVMa(Jugador, [X, Y], [X2, Y], Desp, Estado, Anterior, Actual) :- Estado == 0, 
                                                                                  moverTorreVMa(Jugador, [X, Y], [X2, Y], Desp, Anterior, Actual).
 analizarCasillasVMa(_, [X, Y], [X2, Y], _, Estado, Anterior, Actual)          :- Estado == 1, 
@@ -111,7 +118,10 @@ analizarCasillasHMe(Jugador, [X, Y], [X, Y2], Desp, Estado, Anterior, Actual) :-
                                                                                  moverTorreHMe(Jugador, [X, Y], [X, Y2], Desp, Anterior, Actual).
 analizarCasillasHMe(_, [X, Y], [X, Y2], _, Anterior, Estado, Actual)          :- Estado == 1, 
                                                                                  actualizarTablero(X, Y, X, Y2, Anterior, Actual).
-
+/* DIS: DIagonal Izquierda Superior
+   DDS: Diagonal Derecha Superior
+   DII: Diagonal Izquierda Inferior
+   DDI: Diagonal Derecha Superior*/
 analizarCasillasDIS(Jugador, [X, Y], [X2, Y2], Desp, Estado, Anterior, Actual) :- Estado == 0, 
                                                                                   moverDIS(Jugador, [X, Y], [X2, Y2], Desp, Anterior, Actual).
 analizarCasillasDIS(_, [X, Y], [X2, Y2], _, Estado, Anterior, Actual)          :- Estado == 1, 
@@ -143,38 +153,41 @@ buscarAlfil(Jugador, [_|T], Alfil) :- buscarAlfil(Jugador, T, Alfil).
 buscarDama(Jugador, [dama(Jugador, X, Y)|_], [X, Y]).
 buscarDama(Jugador, [_|T], Dama) :- buscarDama(Jugador, T, Dama)
 
-mover(Jugador, Anterior, Actual) :- buscarTorre(Jugador, Anterior, Torre), moverTorre(Jugador, Torre, 0, Anterior, Actual).
-mover(Jugador, Anterior, Actual) :- buscarAlfil(Jugador, Anterior, Alfil), moverAlfil(Jugador, Alfil, 0, Anterior, Actual).
-mover(Jugador, Anterior, Actual) :- buscarDama(Jugador, Anterior, Dama), moverTorre(Jugador, Torre, 0, Anterior, Actual).
-mover(Jugador, Anterior, Actual) :- buscarDama(Jugador, Anterior, Dama), moverAlfil(Jugador, Torre, 0, Anterior, Actual).
+mover(Jugador, Anterior, Actual) :- buscarTorre(Jugador, Anterior, Torre), moverTorre(Jugador, Torre, 1, Anterior, Actual).
+mover(Jugador, Anterior, Actual) :- buscarAlfil(Jugador, Anterior, Alfil), moverAlfil(Jugador, Alfil, 1, Anterior, Actual).
+mover(Jugador, Anterior, Actual) :- buscarDama(Jugador, Anterior, Dama), moverTorre(Jugador, Torre, 1, Anterior, Actual).
+mover(Jugador, Anterior, Actual) :- buscarDama(Jugador, Anterior, Dama), moverAlfil(Jugador, Torre, 1, Anterior, Actual).
 
-/*Uses the proper predicate depending on the direction in which the rook is trying to move*/
-moverTorre(Jugador, [X, Y], Desp, Anterior, Actual) :- Desp2 is Desp + 1, X2 is X + Desp2, coordenadas(X2, Y),
+/*Uses the proper predicate depending on the direction in which the rook/queen is trying to move*/
+moverTorre(Jugador, [X, Y], Desp, Anterior, Actual) :- X2 is X + Desp, coordenadas(X2, Y),
                                                        libre(Jugador, X2, Y, Anterior, NuevoTablero, Estado),
-                                                       analizarCasillasVMa(Jugador, [X, Y], [X2, Y], Desp2, Estado, NuevoTablero, Actual).
-moverTorre(Jugador, [X, Y], Desp, Anterior, Actual) :- Desp2 is Desp + 1, X2 is X - Desp2, coordenadas(X2, Y), 
+                                                       analizarCasillasVMa(Jugador, [X, Y], [X2, Y], Desp, Estado, NuevoTablero, Actual).
+moverTorre(Jugador, [X, Y], Desp, Anterior, Actual) :- X2 is X - Desp, coordenadas(X2, Y), 
                                                        libre(Jugador, X2, Y, Anterior, NuevoTablero, Estado),
-                                                       analizarCasillasVMe(Jugador, [X, Y], [X2, Y], Desp2, Estado, NuevoTablero, Actual).
-moverTorre(Jugador, [X, Y], Desp, Anterior, Actual) :- Desp2 is Desp + 1, Y2 is Y + Desp2, coordenadas(X, Y2),
+                                                       analizarCasillasVMe(Jugador, [X, Y], [X2, Y], Desp, Estado, NuevoTablero, Actual).
+moverTorre(Jugador, [X, Y], Desp, Anterior, Actual) :- Y2 is Y + Desp, coordenadas(X, Y2),
                                                        libre(Jugador, X, Y2, Anterior, NuevoTablero, Estado),
-                                                       analizarCasillasHMa(Jugador, [X, Y], [X, Y2], Desp2, Estado, NuevoTablero, Actual).
-moverTorre(Jugador, [X, Y], Desp, Anterior, Actual) :- Desp2 is Desp + 1, Y2 is Y - Desp2, coordenadas(X, Y2),
+                                                       analizarCasillasHMa(Jugador, [X, Y], [X, Y2], Desp, Estado, NuevoTablero, Actual).
+moverTorre(Jugador, [X, Y], Desp, Anterior, Actual) :- Y2 is Y - Desp, coordenadas(X, Y2),
                                                        libre(Jugador, X, Y2, Anterior, NuevoTablero, Estado),
-                                                       analizarCasillasHMe(Jugador, [X, Y], [X, Y2], Desp2, Estado, NuevoTablero, Actual).
+                                                       analizarCasillasHMe(Jugador, [X, Y], [X, Y2], Desp, Estado, NuevoTablero, Actual).
 
-moverAlfil(Jugador, [X, Y], Desp, Anterior, Actual) :- Desp2 is Desp + 1, X2 is X - Desp2, Y2 is Y - Desp2, coordenadas(X2, Y2),
+/*Uses the proper predicate depending on the direction in which the bishop/queen is trying to move*/
+moverAlfil(Jugador, [X, Y], Desp, Anterior, Actual) :- X2 is X - Desp, Y2 is Y - Desp, coordenadas(X2, Y2),
                                                        libre(Jugador, X2, Y2, Anterior, NuevoTablero, Estado),
-                                                       analizarCasillasDIS(Jugador, [X, Y], [X2, Y2], Desp2, Estado, NuevoTablero, Actual).
-moverAlfil(Jugador, [X, Y], Desp, Anterior, Actual) :- Desp2 is Desp + 1, X2 is X - Desp2, Y2 is Y + Desp2, coordenadas(X2, Y2),
+                                                       analizarCasillasDIS(Jugador, [X, Y], [X2, Y2], Desp, Estado, NuevoTablero, Actual).
+moverAlfil(Jugador, [X, Y], Desp, Anterior, Actual) :- X2 is X - Desp, Y2 is Y + Desp, coordenadas(X2, Y2),
                                                        libre(Jugador, X2, Y2, Anterior, NuevoTablero, Estado),
-                                                       analizarCasillasDDS(Jugador, [X, Y], [X2, Y2], Desp2, Estado, NuevoTablero, Actual).
-moverAlfil(Jugador, [X, Y], Desp, Anterior, Actual) :- Desp2 is Desp + 1, X2 is X + Desp2, Y2 is Y - Desp2, coordenadas(X2, Y2),
+                                                       analizarCasillasDDS(Jugador, [X, Y], [X2, Y2], Desp, Estado, NuevoTablero, Actual).
+moverAlfil(Jugador, [X, Y], Desp, Anterior, Actual) :- X2 is X + Desp, Y2 is Y - Desp, coordenadas(X2, Y2),
                                                        libre(Jugador, X2, Y2, Anterior, NuevoTablero, Estado),
-                                                       analizarCasillasDII(Jugador, [X, Y], [X2, Y2], Desp2, Estado, NuevoTablero, Actual).
-moverAlfil(Jugador, [X, Y], Desp, Anterior, Actual) :- Desp2 is Desp + 1, X2 is X + Desp2, Y2 is Y + Desp2, coordenadas(X2, Y2),
+                                                       analizarCasillasDII(Jugador, [X, Y], [X2, Y2], Desp, Estado, NuevoTablero, Actual).
+moverAlfil(Jugador, [X, Y], Desp, Anterior, Actual) :- X2 is X + Desp, Y2 is Y + Desp, coordenadas(X2, Y2),
                                                        libre(Jugador, X2, Y2, Anterior, NuevoTablero, Estado),
-                                                       analizarCasillasDDI(Jugador, [X, Y], [X2, Y2], Desp2, Estado, NuevoTablero, Actual).
+                                                       analizarCasillasDDI(Jugador, [X, Y], [X2, Y2], Desp, Estado, NuevoTablero, Actual).
 
+/*The following predicates unify a new board that includes the lastest move and, if another solution is requiered, it verifies if
+it's possible to continua moving in the same direction */
 moverTorreVMa(_, [X, Y], [X2, Y2], _, Anterior, Actual)   :- actualizarTablero(X, Y, X2, Y2, Anterior, Actual).
 moverTorreVMa(Jugador, [X, Y], _, Desp, Anterior, Actual) :- Desp2 is Desp + 1, X2 is X + Desp2, coordenadas(X2, Y), 
                                                              libre(Jugador, X2, Y, Anterior, NuevoTablero, Estado),
@@ -194,8 +207,7 @@ moverTorreHMe(_, [X, Y], [X2, Y2], _, Anterior, Actual)   :- actualizarTablero(X
 moverTorreHMe(Jugador, [X, Y], _, Desp, Anterior, Actual) :- Desp2 is Desp + 1, Y2 is Y - Desp2, coordenadas(X, Y2), 
                                                              libre(Jugador, X, Y2, Anterior, NuevoTablero, Estado),
                                                              analizarCasillasHMe(Jugador, [X, Y], [X, Y2], Desp2, Estado, NuevoTablero, Actual).
-
-/*Not placeholders*/
+                                                             
 moverDIS(_, [X, Y], [X2, Y2], _, Anterior, Actual)   :- actualizarTablero(X, Y, X2, Y2, Anterior, Actual).
 moverDIS(Jugador, [X, Y], _, Desp, Anterior, Actual) :- Desp2 is Desp + 1, X2 is X - Desp2, Y2 is Y - Desp2, coordenadas(X2, Y2),
                                                         libre(Jugador, X2, Y2, Anterior, NuevoTablero, Estado),
