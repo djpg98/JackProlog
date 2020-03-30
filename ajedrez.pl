@@ -151,12 +151,12 @@ buscarAlfil(Jugador, [alfil(Jugador, X, Y)|_], [X, Y]).
 buscarAlfil(Jugador, [_|T], Alfil) :- buscarAlfil(Jugador, T, Alfil).
 
 buscarDama(Jugador, [dama(Jugador, X, Y)|_], [X, Y]).
-buscarDama(Jugador, [_|T], Dama) :- buscarDama(Jugador, T, Dama)
+buscarDama(Jugador, [_|T], Dama) :- buscarDama(Jugador, T, Dama).
 
 mover(Jugador, Anterior, Actual) :- buscarTorre(Jugador, Anterior, Torre), moverTorre(Jugador, Torre, 1, Anterior, Actual).
 mover(Jugador, Anterior, Actual) :- buscarAlfil(Jugador, Anterior, Alfil), moverAlfil(Jugador, Alfil, 1, Anterior, Actual).
-mover(Jugador, Anterior, Actual) :- buscarDama(Jugador, Anterior, Dama), moverTorre(Jugador, Torre, 1, Anterior, Actual).
-mover(Jugador, Anterior, Actual) :- buscarDama(Jugador, Anterior, Dama), moverAlfil(Jugador, Torre, 1, Anterior, Actual).
+mover(Jugador, Anterior, Actual) :- buscarDama(Jugador, Anterior, Dama), moverTorre(Jugador, Dama, 1, Anterior, Actual).
+mover(Jugador, Anterior, Actual) :- buscarDama(Jugador, Anterior, Dama), moverAlfil(Jugador, Dama, 1, Anterior, Actual).
 
 /*Uses the proper predicate depending on the direction in which the rook/queen is trying to move*/
 moverTorre(Jugador, [X, Y], Desp, Anterior, Actual) :- X2 is X + Desp, coordenadas(X2, Y),
