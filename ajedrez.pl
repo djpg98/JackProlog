@@ -54,7 +54,7 @@ valido(Tablero) :- validarPosiciones(Tablero, []), numeroPiezas(Tablero, blancas
 
 /********************* THIRD PART (I SKIPPED THE SECOND, I HATE PRINTING STUFF THAT WAY)************************/
 
-getElement([H|_], X).
+getElement([X|_], X).
 getElement([_|T], X) :- getElement(T, X).
 
 /*Checks the state of a given square: Empty (0), occupied by the player (2) or by the enemy (1). It unifies NuevoTablero
@@ -113,11 +113,23 @@ buscarDama(Jugador, [_|T], Dama) :- buscarDama(Jugador, T, Dama).
 buscarCaballo(Jugador, [caballo(Jugador, X, Y)|_], [X, Y]).
 buscarCaballo(Jugador, [_|T], Caballo) :- buscarDama(Jugador, T, Caballo).
 
+buscarRey(Jugador, [rey(Jugador, X, Y)|_], [X, Y]).
+buscarRey(Jugador, [_|T], Rey) :- buscarRey(Jugador, T, Rey).
+
+buscarPeon(Jugador, [peon(Jugador, X, Y)|_], [X, Y]).
+buscarPeon(Jugador, [_|T], Peon) :- buscarPeon(Jugador, T, Peon).
+
 
 mover(Jugador, Anterior, Actual) :- buscarTorre(Jugador, Anterior, Torre), moverTorre(Jugador, Torre, 1, Anterior, Actual).
 mover(Jugador, Anterior, Actual) :- buscarAlfil(Jugador, Anterior, Alfil), moverAlfil(Jugador, Alfil, 1, Anterior, Actual).
 mover(Jugador, Anterior, Actual) :- buscarDama(Jugador, Anterior, Dama), moverTorre(Jugador, Dama, 1, Anterior, Actual).
 mover(Jugador, Anterior, Actual) :- buscarDama(Jugador, Anterior, Dama), moverAlfil(Jugador, Dama, 1, Anterior, Actual).
+mover(Jugador, Anterior, Actual) :- buscarCaballo(Jugador, Anterior, Caballo), 
+                                    Movimientos = [[-2, 1], [-1, 2], [1, 2], [2, 1], [2, -1], [1, -2], [-1, -2], [-2, -1]],
+                                    moverPieza(Jugador, Caballo, Movimientos, Anterior, Actual).
+mover(Jugador, Anterior, Actual) :- buscarRey(Jugador, Anterior, Rey), 
+                                    Movimientos = [[-1, -1], [-1, 0], [-1, 1], [0, 1], [1, 1], [1, 0], [1, -1], [0, -1]],
+                                    moverPieza(Jugador, Rey, Movimientos, Anterior, Actual).
 
 /*Uses the proper predicate depending on the direction in which the rook/queen is trying to move*/
 moverTorre(Jugador, [X, Y], Desp, Anterior, Actual) :- X2 is X + Desp, coordenadas(X2, Y),
@@ -147,8 +159,12 @@ moverAlfil(Jugador, [X, Y], Desp, Anterior, Actual) :- X2 is X + Desp, Y2 is Y +
                                                        libre(Jugador, X2, Y2, Anterior, NuevoTablero, Estado),
                                                        moverDDI(Jugador, [X, Y], [X2, Y2], Desp, Estado, NuevoTablero, Actual).
 
-moverCaballo(Jugador, [X, Y], Anterior, Actual) :- movimientos = [[-2, 1], [-1, 2], [1, 2], [2, 1], [2, -1], [1, -2], [-1, -2], [-2, -1]],
-                                                   getElement(movimientos, X)
+moverPieza(Jugador, [X, Y], Movimientos, Anterior, Actual) :- getElement(Movimientos, [DespX, DespY]), 
+                                                              moverAux(Jugador, [X, Y], [DespX, DespY], Anterior, Actual).
+
+moverAux(Jugador, [X, Y], [DespX, DespY], Anterior, Actual) :- X2 is X + DespX, Y2 is Y + DespY, coordenadas(X2, Y2),
+                                                               libre(Jugador, X2, Y2, Anterior, NuevoTablero, Estado),
+                                                               Estado < 2, actualizarTablero(X, Y, X2, Y2, NuevoTablero, Actual).                                                                    
 
 
 /*The following predicates allow the unification of variable "actual" with a board updated with a possible move of the
@@ -237,4 +253,6 @@ moverDDI(_, [X, Y], [X2, Y2], _, Estado, Anterior, Actual)   :- Estado == 1,
 caballo(negras,4,6),rey(blancas,8,5),peon(blancas,7,5),dama(blancas,6,4), torre(blancas, 3, 1)], Actual).
 
 moverAlfil(blancas, [5, 5], 1, [alfil(blancas, 5, 5), torre(negras,1,1),peon(negras,2,2),peon(negras,2,4),rey(negras,1,4),
-caballo(negras,4,6),rey(blancas,8,5)], Actual).*/
+caballo(negras,4,6),rey(blancas,8,5)], Actual).
+
+moverPieza(negras, [4,4], [[-2, 1], [-1, 2], [1, 2], [2, 1], [2, -1], [1, -2], [-1, -2], [-2, -1]], [caballo(negras, 5, 5)], Actual) */
