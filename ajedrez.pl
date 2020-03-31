@@ -54,6 +54,9 @@ valido(Tablero) :- validarPosiciones(Tablero, []), numeroPiezas(Tablero, blancas
 
 /********************* THIRD PART (I SKIPPED THE SECOND, I HATE PRINTING STUFF THAT WAY)************************/
 
+getElement([H|_], X).
+getElement([_|T], X) :- getElement(T, X).
+
 /*Checks the state of a given square: Empty (0), occupied by the player (2) or by the enemy (1). It unifies NuevoTablero
 with Anterior in the former two cases and with Anterior without the piece in the given square in the latter*/
 libre(_, _, _,[], NuevoTablero, Estado) :- NuevoTablero = [], Estado = 0.
@@ -81,7 +84,7 @@ libre(Color, X, Y, [rey(J, X2, Y2)|T], NuevoTablero, Estado) :- [X, Y]  \= [X2, 
                                                                 NuevoTablero = [rey(J, X2, Y2)|NuevoTablero2].
 libre(_, X, Y, [rey(J, X2, Y2)|T], NuevoTablero, Estado) :- [X, Y] = [X2, Y2], Estado = 2, NuevoTablero = [rey(J, X2, Y2)|T].
 
-/*Updates the board with the last move*/
+/*Updates the board with the lastest move*/
 actualizarTablero(X, Y, X2, Y2, [peon(J, X, Y)|T], Actual) :- Actual = [peon(J, X2, Y2)|T].  
 actualizarTablero(X, Y, X2, Y2, [torre(J, X, Y)|T], Actual) :- Actual = [torre(J, X2, Y2)|T].
 actualizarTablero(X, Y, X2, Y2, [caballo(J, X, Y)|T], Actual) :- Actual = [caballo(J, X2, Y2)|T].   
@@ -90,57 +93,11 @@ actualizarTablero(X, Y, X2, Y2, [dama(J, X, Y)|T], Actual) :- Actual = [dama(J, 
 actualizarTablero(X, Y, X2, Y2, [rey(J, X, Y)|T], Actual) :- Actual = [rey(J, X2, Y2)|T].
 actualizarTablero(X, Y, X2, Y2, [H|T], Actual) :- actualizarTablero(X, Y, X2, Y2, T, Actual2), Actual = [H|Actual2]. 
 
-/*The following functions analyze if a given square is free or in use by the rival player. If its free it uses the appropiate predicate to
-update the board or continue checking in the same direction. If it's in use by the rival player, unifies the updated board*/
 
-/*VMa: Vertical Más
-  VMe: Vertical Menos
-  HMa: Horizonal Más
-  HNe: Horizontal Negativo
-*/
-
-analizarCasillasVMa(Jugador, [X, Y], [X2, Y], Desp, Estado, Anterior, Actual) :- Estado == 0, 
-                                                                                 moverTorreVMa(Jugador, [X, Y], [X2, Y], Desp, Anterior, Actual).
-analizarCasillasVMa(_, [X, Y], [X2, Y], _, Estado, Anterior, Actual)          :- Estado == 1, 
-                                                                                 actualizarTablero(X, Y, X2, Y, Anterior, Actual).
-
-analizarCasillasVMe(Jugador, [X, Y], [X2, Y], Desp, Estado, Anterior, Actual) :- Estado == 0, 
-                                                                                 moverTorreVMe(Jugador, [X, Y], [X2, Y], Desp, Anterior, Actual).
-analizarCasillasVMe(_, [X, Y], [X2, Y], _, Estado, Anterior, Actual)          :- Estado == 1, 
-                                                                                 actualizarTablero(X, Y, X2, Y, Anterior, Actual).
-
-analizarCasillasHMa(Jugador, [X, Y], [X, Y2], Desp, Estado, Anterior, Actual) :- Estado == 0, 
-                                                                                 moverTorreHMa(Jugador, [X, Y], [X, Y2], Desp, Anterior, Actual).
-analizarCasillasHMa(_, [X, Y], [X, Y2], _, Estado, Anterior, Actual)          :- Estado == 1, 
-                                                                                 actualizarTablero(X, Y, X, Y2, Anterior, Actual).                                                            
-
-analizarCasillasHMe(Jugador, [X, Y], [X, Y2], Desp, Estado, Anterior, Actual) :- Estado == 0, 
-                                                                                 moverTorreHMe(Jugador, [X, Y], [X, Y2], Desp, Anterior, Actual).
-analizarCasillasHMe(_, [X, Y], [X, Y2], _, Anterior, Estado, Actual)          :- Estado == 1, 
-                                                                                 actualizarTablero(X, Y, X, Y2, Anterior, Actual).
 /* DIS: DIagonal Izquierda Superior
    DDS: Diagonal Derecha Superior
    DII: Diagonal Izquierda Inferior
    DDI: Diagonal Derecha Superior*/
-analizarCasillasDIS(Jugador, [X, Y], [X2, Y2], Desp, Estado, Anterior, Actual) :- Estado == 0, 
-                                                                                  moverDIS(Jugador, [X, Y], [X2, Y2], Desp, Anterior, Actual).
-analizarCasillasDIS(_, [X, Y], [X2, Y2], _, Estado, Anterior, Actual)          :- Estado == 1, 
-                                                                                  actualizarTablero(X, Y, X2, Y2, Anterior, Actual).
-
-analizarCasillasDDS(Jugador, [X, Y], [X2, Y2], Desp, Estado, Anterior, Actual) :- Estado == 0, 
-                                                                                  moverDDS(Jugador, [X, Y], [X2, Y2], Desp, Anterior, Actual).
-analizarCasillasDDS(_, [X, Y], [X2, Y2], _, Estado, Anterior, Actual)          :- Estado == 1, 
-                                                                                  actualizarTablero(X, Y, X2, Y2, Anterior, Actual).
-
-analizarCasillasDII(Jugador, [X, Y], [X2, Y2], Desp, Estado, Anterior, Actual) :- Estado == 0, 
-                                                                                  moverDII(Jugador, [X, Y], [X2, Y2], Desp, Anterior, Actual).
-analizarCasillasDII(_, [X, Y], [X2, Y2], _, Estado, Anterior, Actual)          :- Estado == 1, 
-                                                                                  actualizarTablero(X, Y, X2, Y2, Anterior, Actual).
-
-analizarCasillasDDI(Jugador, [X, Y], [X2, Y2], Desp, Estado, Anterior, Actual) :- Estado == 0, 
-                                                                                  moverDDI(Jugador, [X, Y], [X2, Y2], Desp, Anterior, Actual).
-analizarCasillasDDI(_, [X, Y], [X2, Y2], _, Estado, Anterior, Actual)          :- Estado == 1, 
-                                                                                  actualizarTablero(X, Y, X2, Y2, Anterior, Actual).
                                                                           
 /*Unifies [X, Y] with the coordinate's of one of the player's rooks*/
 buscarTorre(Jugador, [torre(Jugador, X, Y)|_], [X, Y]).
@@ -153,6 +110,10 @@ buscarAlfil(Jugador, [_|T], Alfil) :- buscarAlfil(Jugador, T, Alfil).
 buscarDama(Jugador, [dama(Jugador, X, Y)|_], [X, Y]).
 buscarDama(Jugador, [_|T], Dama) :- buscarDama(Jugador, T, Dama).
 
+buscarCaballo(Jugador, [caballo(Jugador, X, Y)|_], [X, Y]).
+buscarCaballo(Jugador, [_|T], Caballo) :- buscarDama(Jugador, T, Caballo).
+
+
 mover(Jugador, Anterior, Actual) :- buscarTorre(Jugador, Anterior, Torre), moverTorre(Jugador, Torre, 1, Anterior, Actual).
 mover(Jugador, Anterior, Actual) :- buscarAlfil(Jugador, Anterior, Alfil), moverAlfil(Jugador, Alfil, 1, Anterior, Actual).
 mover(Jugador, Anterior, Actual) :- buscarDama(Jugador, Anterior, Dama), moverTorre(Jugador, Dama, 1, Anterior, Actual).
@@ -161,74 +122,119 @@ mover(Jugador, Anterior, Actual) :- buscarDama(Jugador, Anterior, Dama), moverAl
 /*Uses the proper predicate depending on the direction in which the rook/queen is trying to move*/
 moverTorre(Jugador, [X, Y], Desp, Anterior, Actual) :- X2 is X + Desp, coordenadas(X2, Y),
                                                        libre(Jugador, X2, Y, Anterior, NuevoTablero, Estado),
-                                                       analizarCasillasVMa(Jugador, [X, Y], [X2, Y], Desp, Estado, NuevoTablero, Actual).
+                                                       moverVMa(Jugador, [X, Y], [X2, Y], Desp, Estado, NuevoTablero, Actual).
 moverTorre(Jugador, [X, Y], Desp, Anterior, Actual) :- X2 is X - Desp, coordenadas(X2, Y), 
                                                        libre(Jugador, X2, Y, Anterior, NuevoTablero, Estado),
-                                                       analizarCasillasVMe(Jugador, [X, Y], [X2, Y], Desp, Estado, NuevoTablero, Actual).
+                                                       moverVMe(Jugador, [X, Y], [X2, Y], Desp, Estado, NuevoTablero, Actual).
 moverTorre(Jugador, [X, Y], Desp, Anterior, Actual) :- Y2 is Y + Desp, coordenadas(X, Y2),
                                                        libre(Jugador, X, Y2, Anterior, NuevoTablero, Estado),
-                                                       analizarCasillasHMa(Jugador, [X, Y], [X, Y2], Desp, Estado, NuevoTablero, Actual).
+                                                       moverHMa(Jugador, [X, Y], [X, Y2], Desp, Estado, NuevoTablero, Actual).
 moverTorre(Jugador, [X, Y], Desp, Anterior, Actual) :- Y2 is Y - Desp, coordenadas(X, Y2),
                                                        libre(Jugador, X, Y2, Anterior, NuevoTablero, Estado),
-                                                       analizarCasillasHMe(Jugador, [X, Y], [X, Y2], Desp, Estado, NuevoTablero, Actual).
+                                                       moverHMe(Jugador, [X, Y], [X, Y2], Desp, Estado, NuevoTablero, Actual).
 
 /*Uses the proper predicate depending on the direction in which the bishop/queen is trying to move*/
 moverAlfil(Jugador, [X, Y], Desp, Anterior, Actual) :- X2 is X - Desp, Y2 is Y - Desp, coordenadas(X2, Y2),
                                                        libre(Jugador, X2, Y2, Anterior, NuevoTablero, Estado),
-                                                       analizarCasillasDIS(Jugador, [X, Y], [X2, Y2], Desp, Estado, NuevoTablero, Actual).
+                                                       moverDIS(Jugador, [X, Y], [X2, Y2], Desp, Estado, NuevoTablero, Actual).
 moverAlfil(Jugador, [X, Y], Desp, Anterior, Actual) :- X2 is X - Desp, Y2 is Y + Desp, coordenadas(X2, Y2),
                                                        libre(Jugador, X2, Y2, Anterior, NuevoTablero, Estado),
-                                                       analizarCasillasDDS(Jugador, [X, Y], [X2, Y2], Desp, Estado, NuevoTablero, Actual).
+                                                       moverDDS(Jugador, [X, Y], [X2, Y2], Desp, Estado, NuevoTablero, Actual).
 moverAlfil(Jugador, [X, Y], Desp, Anterior, Actual) :- X2 is X + Desp, Y2 is Y - Desp, coordenadas(X2, Y2),
                                                        libre(Jugador, X2, Y2, Anterior, NuevoTablero, Estado),
-                                                       analizarCasillasDII(Jugador, [X, Y], [X2, Y2], Desp, Estado, NuevoTablero, Actual).
+                                                       moverDII(Jugador, [X, Y], [X2, Y2], Desp, Estado, NuevoTablero, Actual).
 moverAlfil(Jugador, [X, Y], Desp, Anterior, Actual) :- X2 is X + Desp, Y2 is Y + Desp, coordenadas(X2, Y2),
                                                        libre(Jugador, X2, Y2, Anterior, NuevoTablero, Estado),
-                                                       analizarCasillasDDI(Jugador, [X, Y], [X2, Y2], Desp, Estado, NuevoTablero, Actual).
+                                                       moverDDI(Jugador, [X, Y], [X2, Y2], Desp, Estado, NuevoTablero, Actual).
 
-/*The following predicates unify a new board that includes the lastest move and, if another solution is requiered, it verifies if
-it's possible to continua moving in the same direction */
-moverTorreVMa(_, [X, Y], [X2, Y2], _, Anterior, Actual)   :- actualizarTablero(X, Y, X2, Y2, Anterior, Actual).
-moverTorreVMa(Jugador, [X, Y], _, Desp, Anterior, Actual) :- Desp2 is Desp + 1, X2 is X + Desp2, coordenadas(X2, Y), 
-                                                             libre(Jugador, X2, Y, Anterior, NuevoTablero, Estado),
-                                                             analizarCasillasVMa(Jugador, [X, Y], [X2, Y], Desp2, Estado, NuevoTablero, Actual).
+moverCaballo(Jugador, [X, Y], Anterior, Actual) :- movimientos = [[-2, 1], [-1, 2], [1, 2], [2, 1], [2, -1], [1, -2], [-1, -2], [-2, -1]],
+                                                   getElement(movimientos, X)
 
-moverTorreVMe(_, [X, Y], [X2, Y2], _, Anterior, Actual)   :- actualizarTablero(X, Y, X2, Y2, Anterior, Actual).
-moverTorreVMe(Jugador, [X, Y], _, Desp, Anterior, Actual) :- Desp2 is Desp + 1, X2 is X - Desp2, coordenadas(X2, Y), 
-                                                             libre(Jugador, X2, Y, Anterior, NuevoTablero, Estado),
-                                                             analizarCasillasVMe(Jugador, [X, Y], [X2, Y], Desp2, Estado, NuevoTablero, Actual).
 
-moverTorreHMa(_, [X, Y], [X2, Y2], _, Anterior, Actual)   :- actualizarTablero(X, Y, X2, Y2, Anterior, Actual).
-moverTorreHMa(Jugador, [X, Y], _, Desp, Anterior, Actual) :- Desp2 is Desp + 1, Y2 is Y + Desp2, coordenadas(X, Y2), 
-                                                             libre(Jugador, X, Y2, Anterior, NuevoTablero, Estado),
-                                                             analizarCasillasHMa(Jugador, [X, Y], [X, Y2], Desp2, Estado, NuevoTablero, Actual).
+/*The following predicates allow the unification of variable "actual" with a board updated with a possible move of the
+piece currently in [X, Y]. If another solution is needed, the predicate checks if the piece can keep moving in the 
+same direction */
 
-moverTorreHMe(_, [X, Y], [X2, Y2], _, Anterior, Actual)   :- actualizarTablero(X, Y, X2, Y2, Anterior, Actual).
-moverTorreHMe(Jugador, [X, Y], _, Desp, Anterior, Actual) :- Desp2 is Desp + 1, Y2 is Y - Desp2, coordenadas(X, Y2), 
-                                                             libre(Jugador, X, Y2, Anterior, NuevoTablero, Estado),
-                                                             analizarCasillasHMe(Jugador, [X, Y], [X, Y2], Desp2, Estado, NuevoTablero, Actual).
-                                                             
-moverDIS(_, [X, Y], [X2, Y2], _, Anterior, Actual)   :- actualizarTablero(X, Y, X2, Y2, Anterior, Actual).
-moverDIS(Jugador, [X, Y], _, Desp, Anterior, Actual) :- Desp2 is Desp + 1, X2 is X - Desp2, Y2 is Y - Desp2, coordenadas(X2, Y2),
-                                                        libre(Jugador, X2, Y2, Anterior, NuevoTablero, Estado),
-                                                        analizarCasillasDIS(Jugador, [X, Y], [X2, Y2], Desp2, Estado, NuevoTablero, Actual).
+/*VMa: Vertical Más */
+moverVMa(_, [X, Y], [X2, Y], _, Estado, Anterior, Actual)    :- Estado == 0, 
+                                                                actualizarTablero(X, Y, X2, Y, Anterior, Actual).
+moverVMa(Jugador, [X, Y], _, Desp, Estado, Anterior, Actual) :- Estado == 0,
+                                                                Desp2 is Desp + 1, X2 is X + Desp2, coordenadas(X2, Y),
+                                                                libre(Jugador, X2, Y, Anterior, NuevoTablero, NuevoEstado), 
+                                                                moverVMa(Jugador, [X, Y], [X2, Y], Desp2, NuevoEstado, NuevoTablero, Actual).
+moverVMa(_, [X, Y], [X2, Y], _, Estado, Anterior, Actual)    :- Estado == 1,
+                                                                actualizarTablero(X, Y, X2, Y, Anterior, Actual).
+/*VMa: Vertical Menos */
+moverVMe(_, [X, Y], [X2, Y], _, Estado, Anterior, Actual)    :- Estado == 0, 
+                                                                actualizarTablero(X, Y, X2, Y, Anterior, Actual).
+moverVMe(Jugador, [X, Y], _, Desp, Estado, Anterior, Actual) :- Estado == 0, 
+                                                                Desp2 is Desp + 1, X2 is X - Desp2, coordenadas(X2, Y), 
+                                                                libre(Jugador, X2, Y, Anterior, NuevoTablero, NuevoEstado),
+                                                                moverVMe(Jugador, [X, Y], [X2, Y], Desp2, NuevoEstado, NuevoTablero, Actual).                                                                             
+moverVMe(_, [X, Y], [X2, Y], _, Estado, Anterior, Actual)    :- Estado == 1, 
+                                                                actualizarTablero(X, Y, X2, Y, Anterior, Actual).
 
-moverDDS(_, [X, Y], [X2, Y2], _, Anterior, Actual)   :- actualizarTablero(X, Y, X2, Y2, Anterior, Actual).
-moverDDS(Jugador, [X, Y], _, Desp, Anterior, Actual) :- Desp2 is Desp + 1, X2 is X - Desp2, Y2 is Y + Desp2, coordenadas(X2, Y2), 
-                                                        libre(Jugador, X2, Y2, Anterior, NuevoTablero, Estado),
-                                                        analizarCasillasVMe(Jugador, [X, Y], [X2, Y], Desp2, Estado, NuevoTablero, Actual).
+/*HMa: Horizontal Más */
+moverHMa(_, [X, Y], [X, Y2], _, Estado, Anterior, Actual)     :- Estado == 0, 
+                                                                 actualizarTablero(X, Y, X, Y2, Anterior, Actual).
+moverHMa(Jugador, [X, Y], _, Desp, Estado, Anterior, Actual)  :- Estado == 0,
+                                                                 Desp2 is Desp + 1, Y2 is Y + Desp2, coordenadas(X, Y2), 
+                                                                 libre(Jugador, X, Y2, Anterior, NuevoTablero, NuevoEstado),
+                                                                 moverHMa(Jugador, [X, Y], [X, Y2], Desp2, NuevoEstado, NuevoTablero, Actual).
+moverHMa(_, [X, Y], [X, Y2], _, Estado, Anterior, Actual)     :- Estado == 1, 
+                                                                 actualizarTablero(X, Y, X, Y2, Anterior, Actual).                                                            
 
-moverDII(_, [X, Y], [X2, Y2], _, Anterior, Actual)   :- actualizarTablero(X, Y, X2, Y2, Anterior, Actual).
-moverDII(Jugador, [X, Y], _, Desp, Anterior, Actual) :- Desp2 is Desp + 1, X2 is X + Desp2, Y2 is Y - Desp2, coordenadas(X2, Y2),
-                                                        libre(Jugador, X2, Y2, Anterior, NuevoTablero, Estado),
-                                                        analizarCasillasDII(Jugador, [X, Y], [X2, Y2], Desp2, Estado, NuevoTablero, Actual).
+/*HMe: Horizontal Menos */
+moverHMe(_, [X, Y], [X, Y2], _, Estado, Anterior, Actual)    :- Estado == 0, 
+                                                                actualizarTablero(X, Y, X, Y2, Anterior, Actual).
+moverHMe(Jugador, [X, Y], _, Desp, Estado, Anterior, Actual) :- Estado == 0, 
+                                                                Desp2 is Desp + 1, Y2 is Y - Desp2, coordenadas(X, Y2), 
+                                                                libre(Jugador, X, Y2, Anterior, NuevoTablero, NuevoEstado),
+                                                                moverHMe(Jugador, [X, Y], [X, Y2], Desp2, NuevoEstado, NuevoTablero, Actual).                                                                               
+moverHMe(_, [X, Y], [X, Y2], _, Anterior, Estado, Actual)    :- Estado == 1, 
+                                                                actualizarTablero(X, Y, X, Y2, Anterior, Actual).
 
-moverDDI(_, [X, Y], [X2, Y2], _, Anterior, Actual)   :- actualizarTablero(X, Y, X2, Y2, Anterior, Actual).
-moverDDI(Jugador, [X, Y], _, Desp, Anterior, Actual) :- Desp2 is Desp + 1, X2 is X + Desp2, Y2 is Y + Desp2, coordenadas(X2, Y2),
-                                                        libre(Jugador, X2, Y2, Anterior, NuevoTablero, Estado),
-                                                        analizarCasillasDDI(Jugador, [X, Y], [X2, Y2], Desp2, Estado, NuevoTablero, Actual).
-/* moverTorre(negras, [1,1], 0, [torre(negras,1,1),peon(negras,2,2),peon(negras,2,4),rey(negras,1,4),
+/*DIS: DIagonal Izquierda Superior*/                                                     
+moverDIS(_, [X, Y], [X2, Y2], _, Estado, Anterior, Actual)   :- Estado == 0, 
+                                                                actualizarTablero(X, Y, X2, Y2, Anterior, Actual).
+moverDIS(Jugador, [X, Y], _, Desp, Estado, Anterior, Actual) :- Estado == 0, 
+                                                                Desp2 is Desp + 1, X2 is X - Desp2, Y2 is Y - Desp2, coordenadas(X2, Y2),
+                                                                libre(Jugador, X2, Y2, Anterior, NuevoTablero, NuevoEstado),
+                                                                moverDIS(Jugador, [X, Y], [X2, Y2], Desp2, NuevoEstado, NuevoTablero, Actual).                                                                                  
+moverDIS(_, [X, Y], [X2, Y2], _, Estado, Anterior, Actual)   :- Estado == 1, 
+                                                                actualizarTablero(X, Y, X2, Y2, Anterior, Actual).
+
+/*DDS: DIagonal Derecha Superior*/ 
+moverDDS(_, [X, Y], [X2, Y2], _, Estado, Anterior, Actual)   :- Estado == 0, 
+                                                                actualizarTablero(X, Y, X2, Y2, Anterior, Actual).
+moverDDS(Jugador, [X, Y], _, Desp, Estado, Anterior, Actual) :- Estado == 0, 
+                                                                Desp2 is Desp + 1, X2 is X - Desp2, Y2 is Y + Desp2, coordenadas(X2, Y2), 
+                                                                libre(Jugador, X2, Y2, Anterior, NuevoTablero, NuevoEstado),
+                                                                moverDDS(Jugador, [X, Y], [X2, Y], Desp2, NuevoEstado, NuevoTablero, Actual).
+moverDDS(_, [X, Y], [X2, Y2], _, Estado, Anterior, Actual)   :- Estado == 1, 
+                                                                actualizarTablero(X, Y, X2, Y2, Anterior, Actual).
+
+/*DII: DIagonal Izquierda inferior*/ 
+moverDII(_, [X, Y], [X2, Y2], _, Estado, Anterior, Actual)   :- Estado == 0, 
+                                                                actualizarTablero(X, Y, X2, Y2, Anterior, Actual).
+moverDII(Jugador, [X, Y], _, Desp, Estado, Anterior, Actual) :- Estado == 0,
+                                                                Desp2 is Desp + 1, X2 is X + Desp2, Y2 is Y - Desp2, coordenadas(X2, Y2),
+                                                                libre(Jugador, X2, Y2, Anterior, NuevoTablero, NuevoEstado), 
+                                                                moverDII(Jugador, [X, Y], [X2, Y2], Desp2, NuevoEstado, NuevoTablero, Actual).
+moverDII(_, [X, Y], [X2, Y2], _, Estado, Anterior, Actual)   :- Estado == 1, 
+                                                                actualizarTablero(X, Y, X2, Y2, Anterior, Actual).
+
+/*DDI: DIagonal Derecha inferior*/ 
+moverDDI(_, [X, Y], [X2, Y2], _, Estado, Anterior, Actual)   :- Estado == 0, 
+                                                                actualizarTablero(X, Y, X2, Y2, Anterior, Actual).
+moverDDI(Jugador, [X, Y], _, Desp, Estado, Anterior, Actual) :- Estado == 0, 
+                                                                Desp2 is Desp + 1, X2 is X + Desp2, Y2 is Y + Desp2, coordenadas(X2, Y2),
+                                                                libre(Jugador, X2, Y2, Anterior, NuevoTablero, NuevoEstado),
+                                                                moverDDI(Jugador, [X, Y], [X2, Y2], Desp2, NuevoEstado, NuevoTablero, Actual).
+moverDDI(_, [X, Y], [X2, Y2], _, Estado, Anterior, Actual)   :- Estado == 1, 
+                                                                actualizarTablero(X, Y, X2, Y2, Anterior, Actual).
+/* moverTorre(negras, [1,1], 1, [torre(negras,1,1),peon(negras,2,2),peon(negras,2,4),rey(negras,1,4),
 caballo(negras,4,6),rey(blancas,8,5),peon(blancas,7,5),dama(blancas,6,4), torre(blancas, 3, 1)], Actual).
 
-moverAlfil(blancas, [5, 5], 0, [alfil(blancas, 5, 5), torre(negras,1,1),peon(negras,2,2),peon(negras,2,4),rey(negras,1,4),
+moverAlfil(blancas, [5, 5], 1, [alfil(blancas, 5, 5), torre(negras,1,1),peon(negras,2,2),peon(negras,2,4),rey(negras,1,4),
 caballo(negras,4,6),rey(blancas,8,5)], Actual).*/
