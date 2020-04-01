@@ -93,6 +93,11 @@ actualizarTablero(X, Y, X2, Y2, [dama(J, X, Y)|T], Actual) :- Actual = [dama(J, 
 actualizarTablero(X, Y, X2, Y2, [rey(J, X, Y)|T], Actual) :- Actual = [rey(J, X2, Y2)|T].
 actualizarTablero(X, Y, X2, Y2, [H|T], Actual) :- actualizarTablero(X, Y, X2, Y2, T, Actual2), Actual = [H|Actual2]. 
 
+coronacion(X, Y, X2, Y2, [peon(J, X, Y)|T], Actual) :- Actual = [torre(J, X2, Y2)|T].
+coronacion(X, Y, X2, Y2, [peon(J, X, Y)|T], Actual) :- Actual = [alfil(J, X2, Y2)|T].
+coronacion(X, Y, X2, Y2, [peon(J, X, Y)|T], Actual) :- Actual = [dama(J, X2, Y2)|T].
+coronacion(X, Y, X2, Y2, [peon(J, X, Y)|T], Actual) :- Actual = [caballo(J, X2, Y2)|T].
+coronacion(X, Y, X2, Y2, [H|T], Actual) :- coronacion(X, Y, X2, Y2, T, Actual2), Actual = [H|Actual2]. 
 
 /* DIS: DIagonal Izquierda Superior
    DDS: Diagonal Derecha Superior
@@ -120,6 +125,7 @@ buscarPeon(Jugador, [peon(Jugador, X, Y)|_], [X, Y]).
 buscarPeon(Jugador, [_|T], Peon) :- buscarPeon(Jugador, T, Peon).
 
 
+mover(Jugador, Anterior, Actual) :- buscarPeon(Jugador, Anterior, Peon), moverPeon(Jugador, Peon, Anterior, Actual).
 mover(Jugador, Anterior, Actual) :- buscarTorre(Jugador, Anterior, Torre), moverTorre(Jugador, Torre, 1, Anterior, Actual).
 mover(Jugador, Anterior, Actual) :- buscarAlfil(Jugador, Anterior, Alfil), moverAlfil(Jugador, Alfil, 1, Anterior, Actual).
 mover(Jugador, Anterior, Actual) :- buscarDama(Jugador, Anterior, Dama), moverTorre(Jugador, Dama, 1, Anterior, Actual).
@@ -160,17 +166,33 @@ moverAlfil(Jugador, [X, Y], Desp, Anterior, Actual) :- X2 is X + Desp, Y2 is Y +
                                                        moverDDI(Jugador, [X, Y], [X2, Y2], Desp, Estado, NuevoTablero, Actual).
 
 moverPeon(Jugador, [X, Y], Anterior, Actual) :- Jugador = blancas, X = 7, X2 is X - 2, 
-                                                peonAvanza(Jugador, [X, Y], [X2, Y], Anterior, Actual).
+                                                peonAvanza(Jugador, [X, Y], [X2, Y], 0, Anterior, Actual).
 moverPeon(Jugador, [X, Y], Anterior, Actual) :- Jugador = negras, X = 2, X2 is X + 2, 
-                                                peonAvanza(Jugador, [X, Y], [X2, Y], Anterior, Actual).
+                                                peonAvanza(Jugador, [X, Y], [X2, Y], 0, Anterior, Actual).
 moverPeon(Jugador, [X, Y], Anterior, Actual) :- Jugador = blancas, X2 is X - 1, 
-                                                peonAvanza(Jugador, [X, Y], [X2, Y], Anterior, Actual).
+                                                peonAvanza(Jugador, [X, Y], [X2, Y], 0, Anterior, Actual).
 moverPeon(Jugador, [X, Y], Anterior, Actual) :- Jugador = negras, X2 is X + 1, 
-                                                peonAvanza(Jugador, [X, Y], [X2, Y], Anterior, Actual).
+                                                peonAvanza(Jugador, [X, Y], [X2, Y], 0, Anterior, Actual).
+moverPeon(Jugador, [X, Y], Anterior, Actual) :- Jugador = blancas, X2 is X - 1, Movimientos = [-1, 1], 
+                                                getElement(Movimientos, DespY), Y2 is Y + DespY,
+                                                peonAvanza(Jugador, [X, Y], [X2, Y2], 1, Anterior, Actual).
+moverPeon(Jugador, [X, Y], Anterior, Actual) :- Jugador = negras, X2 is X + 1, Movimientos = [-1, 1], 
+                                                getElement(Movimientos, DespY), Y2 is Y + DespY, 
+                                                peonAvanza(Jugador, [X, Y], [X2, Y2], 1, Anterior, Actual).
 
-peonAvanza(Jugador, [X, Y], [X2, Y2], Anterior, Actual) :- coordenadas(X2, Y2),
-                                                           libre(Jugador, X2, Y2, Anterior, NuevoTablero, Estado),
-                                                           Estado = 1, actualizarTablero(X, Y, X2, Y, NuevoTablero, Actual).
+
+peonAvanza(Jugador, [X, Y], [X2, Y2], EstadoReq, Anterior, Actual) :- coordenadas(X2, Y2),
+                                                                      libre(Jugador, X2, Y2, Anterior, NuevoTablero, Estado),
+                                                                      Estado = EstadoReq, X2 > 1, X2 < 8,
+                                                                      actualizarTablero(X, Y, X2, Y2, NuevoTablero, Actual).
+peonAvanza(Jugador, [X, Y], [X2, Y2], EstadoReq, Anterior, Actual) :- coordenadas(X2, Y2),
+                                                                      libre(Jugador, X2, Y2, Anterior, NuevoTablero, Estado),
+                                                                      Estado = EstadoReq, X2 = 1, 
+                                                                      coronacion(X, Y, X2, Y2, NuevoTablero, Actual).
+peonAvanza(Jugador, [X, Y], [X2, Y2], EstadoReq, Anterior, Actual) :- coordenadas(X2, Y2),
+                                                                      libre(Jugador, X2, Y2, Anterior, NuevoTablero, Estado),
+                                                                      Estado = EstadoReq, X2 = 8, 
+                                                                      coronacion(X, Y, X2, Y2, NuevoTablero, Actual).
 
 moverPieza(Jugador, [X, Y], Movimientos, Anterior, Actual) :- getElement(Movimientos, [DespX, DespY]), 
                                                               moverAux(Jugador, [X, Y], [DespX, DespY], Anterior, Actual).
@@ -268,4 +290,7 @@ caballo(negras,4,6),rey(blancas,8,5),peon(blancas,7,5),dama(blancas,6,4), torre(
 moverAlfil(blancas, [5, 5], 1, [alfil(blancas, 5, 5), torre(negras,1,1),peon(negras,2,2),peon(negras,2,4),rey(negras,1,4),
 caballo(negras,4,6),rey(blancas,8,5)], Actual).
 
-moverPieza(negras, [4,4], [[-2, 1], [-1, 2], [1, 2], [2, 1], [2, -1], [1, -2], [-1, -2], [-2, -1]], [caballo(negras, 4, 4)], Actual) */
+moverPieza(negras, [4,4], [[-2, 1], [-1, 2], [1, 2], [2, 1], [2, -1], [1, -2], [-1, -2], [-2, -1]], [caballo(negras, 4, 4)], Actual) 
+
+moverPeon(negras, [2, 4], [alfil(blancas, 3, 5), torre(negras,1,1),peon(negras,7,2),peon(negras,2,4),rey(negras,1,4),
+caballo(negras,4,6),rey(blancas,8,5)], Actual). */
