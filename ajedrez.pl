@@ -163,9 +163,9 @@ moverPeon(Jugador, [X, Y], Anterior, Actual) :- Jugador = blancas, X = 7, X2 is 
                                                 peonAvanza(Jugador, [X, Y], [X2, Y], Anterior, Actual).
 moverPeon(Jugador, [X, Y], Anterior, Actual) :- Jugador = negras, X = 2, X2 is X + 2, 
                                                 peonAvanza(Jugador, [X, Y], [X2, Y], Anterior, Actual).
-moverPeon(Jugador, [X, Y], Anterior, Actual) :- Jugador = blancas, X = 7, X2 is X - 1, 
+moverPeon(Jugador, [X, Y], Anterior, Actual) :- Jugador = blancas, X2 is X - 1, 
                                                 peonAvanza(Jugador, [X, Y], [X2, Y], Anterior, Actual).
-moverPeon(Jugador, [X, Y], Anterior, Actual) :- Jugador = negras, X = 2, X2 is X + 1, 
+moverPeon(Jugador, [X, Y], Anterior, Actual) :- Jugador = negras, X2 is X + 1, 
                                                 peonAvanza(Jugador, [X, Y], [X2, Y], Anterior, Actual).
 
 peonAvanza(Jugador, [X, Y], [X2, Y2], Anterior, Actual) :- coordenadas(X2, Y2),
