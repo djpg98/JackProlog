@@ -1,4 +1,4 @@
-:- dynamic piezas/4.
+:- dynamic pieza/4.
 
 /*These are the only facts available*/
 jugador(negras).
@@ -102,9 +102,9 @@ coronacion(X, Y, X2, Y2, [H|T], Actual) :- coronacion(X, Y, X2, Y2, T, Actual2),
 
 /*Saves the position of the pieces of the board as facts before checking for a check, in order to avoid a significant number of
 iterations over the board*/
-estadoTablero(Tablero) :- retractAll(pieza(W, J, X, Y)), estadoTableroAux(Tablero).
+estadoTablero(Tablero) :- retractall(pieza(_, _, _, _)), estadoTableroAux(Tablero).
 
-estadoTableroAux([])
+estadoTableroAux([]).
 estadoTableroAux([peon(J, X, Y)|T]) :- assert(pieza(peon, J, X, Y)), estadoTableroAux(T).
 estadoTableroAux([torre(J, X, Y)|T]) :- assert(pieza(torre, J, X, Y)), estadoTableroAux(T).
 estadoTableroAux([alfil(J, X, Y)|T]) :- assert(pieza(alfil, J, X, Y)), estadoTableroAux(T).
@@ -132,8 +132,7 @@ buscarRey(Jugador, [_|T], Rey) :- buscarRey(Jugador, T, Rey).
 buscarPeon(Jugador, [peon(Jugador, X, Y)|_], [X, Y]).
 buscarPeon(Jugador, [_|T], Peon) :- buscarPeon(Jugador, T, Peon).
 
-mover(Jugador, Anterior, Actual) :- moverAux(Jugador, Anterior, Actual), estadoTablero(Actual), pieza(rey, Jugador, X, Y),
-                                    not(jaque([X, Y], Jugador)).
+mover(Jugador, Anterior, Actual) :- moverAux(Jugador, Anterior, Actual),not(jaque(Jugador, Actual)), retractall(pieza(_, _, _, _)).
 
 moverAux(Jugador, Anterior, Actual) :- buscarPeon(Jugador, Anterior, Peon), moverPeon(Jugador, Peon, Anterior, Actual).
 moverAux(Jugador, Anterior, Actual) :- buscarTorre(Jugador, Anterior, Torre), moverTorre(Jugador, Torre, 1, Anterior, Actual).
@@ -298,50 +297,55 @@ moverDDI(Jugador, [X, Y], _, Desp, Estado, Anterior, Actual) :- Estado == 0,
 moverDDI(_, [X, Y], [X2, Y2], _, Estado, Anterior, Actual)   :- Estado == 1, 
                                                                 actualizarTablero(X, Y, X2, Y2, Anterior, Actual).
 
-jaque([X, Y], Jugador) :- X2 is X + 1, coordenadas(X2, Y), piezaVH([X2, Y], Jugador, 1, Estado),
+/*jaqueAux([X, Y], Jugador) :- X2 is X + 1, coordenadas(X2, Y), piezaVH([X2, Y], Jugador, 1, Estado), write(Estado), nl,
+                          jaqueVMa([X, Y], Jugador, 1, Estado).*/
+
+jaque(Jugador, Tablero) :- estadoTablero(Tablero), pieza(rey, Jugador, X, Y), jaqueAux([X, Y], Jugador).
+
+jaqueAux([X, Y], Jugador) :- X2 is X + 1, coordenadas(X2, Y), piezaVH([X2, Y], Jugador, 1, Estado),
                           jaqueVMa([X, Y], Jugador, 1, Estado).
-jaque([X, Y], Jugador) :- X2 is X - 1, coordenadas(X2, Y), piezaVH([X2, Y], Jugador, 1, Estado),
+jaqueAux([X, Y], Jugador) :- X2 is X - 1, coordenadas(X2, Y), piezaVH([X2, Y], Jugador, 1, Estado),
                           jaqueVMe([X, Y], Jugador, 1, Estado).
-jaque([X, Y], Jugador) :- Y2 is Y + 1, coordenadas(X, Y2), piezaVH([X2, Y], Jugador, 1, Estado),
+jaqueAux([X, Y], Jugador) :- Y2 is Y + 1, coordenadas(X, Y2), piezaVH([X, Y2], Jugador, 1, Estado),
                           jaqueHMa([X, Y], Jugador, 1, Estado).
-jaque([X, Y], Jugador) :- Y2 is Y - 1, coordenadas(X, Y2), piezaVH([X2, Y], Jugador, 1, Estado),
+jaqueAux([X, Y], Jugador) :- Y2 is Y - 1, coordenadas(X, Y2), piezaVH([X, Y2], Jugador, 1, Estado),
                           jaqueHMe([X, Y], Jugador, 1, Estado).
-jaque([X, Y], Jugador) :- X2 is X - 1, Y2 is Y - 1, coordenadas(X2, Y2), piezaDiagonal([X2,Y2], Jugador, Desp, Estado),
+jaqueAux([X, Y], Jugador) :- X2 is X - 1, Y2 is Y - 1, coordenadas(X2, Y2), piezaDiagonal([X2,Y2], Jugador, 1, Estado),
                           jaqueDIS([X, Y], Jugador, 1, Estado).
-jaque([X, Y], Jugador) :- Jugador = blancas, X2 is X - 1, Y2 is Y - 1, coordenadas(X2, Y2), pieza(peon, negras, X, Y).
-jaque([X, Y], Jugador) :- X2 is X - 1, Y2 is Y + 1, coordenadas(X2, Y2), piezaDiagonal([X2,Y2], Jugador, Desp, Estado),
+jaqueAux([X, Y], Jugador) :- Jugador = blancas, X2 is X - 1, Y2 is Y - 1, coordenadas(X2, Y2), pieza(peon, negras, X2, Y2).
+jaqueAux([X, Y], Jugador) :- X2 is X - 1, Y2 is Y + 1, coordenadas(X2, Y2), piezaDiagonal([X2,Y2], Jugador, 1, Estado),
                           jaqueDDS([X, Y], Jugador, 1, Estado).
-jaque([X, Y], Jugador) :- Jugador = blancas, X2 is X - 1, Y2 is Y + 1, coordenadas(X2, Y2), pieza(peon, negras, X, Y).
-jaque([X, Y], Jugador) :- X2 is X + 1, Y2 is Y - 1, coordenadas(X2, Y2), piezaDiagonal([X2,Y2], Jugador, Desp, Estado),
+jaqueAux([X, Y], Jugador) :- Jugador = blancas, X2 is X - 1, Y2 is Y + 1, coordenadas(X2, Y2), pieza(peon, negras, X2, Y2).
+jaqueAux([X, Y], Jugador) :- X2 is X + 1, Y2 is Y - 1, coordenadas(X2, Y2), piezaDiagonal([X2,Y2], Jugador, 1, Estado),
                           jaqueDII([X, Y], Jugador, 1, Estado).
-jaque([X, Y], Jugador) :- Jugador = negras, X2 is X + 1, Y2 is Y - 1, coordenadas(X2, Y2), pieza(peon, blancas, X, Y).
-jaque([X, Y], Jugador) :- X2 is X + 1, Y2 is Y + 1, coordenadas(X2, Y2), piezaDiagonal([X2,Y2], Jugador, Desp, Estado),
+jaqueAux([X, Y], Jugador) :- Jugador = negras, X2 is X + 1, Y2 is Y - 1, coordenadas(X2, Y2), pieza(peon, blancas, X2, Y2).
+jaqueAux([X, Y], Jugador) :- X2 is X + 1, Y2 is Y + 1, coordenadas(X2, Y2), piezaDiagonal([X2,Y2], Jugador, 1, Estado),
                           jaqueDDI([X, Y], Jugador, 1, Estado).
-jaque([X, Y], Jugador) :- Jugador = negras, X2 is X + 1, Y2 is Y + 1, coordenadas(X2, Y2), pieza(peon, blancas, X, Y).
-jaque([X, Y], Jugador) :- Movimientos = [[-2, 1], [-1, 2], [1, 2], [2, 1], [2, -1], [1, -2], [-1, -2], [-2, -1]],
-                          getElement(Movimientos, [DespX, DespY]), X + DespX, Y2 is Y + DespY, coordenadas(X2, Y2),
-                          pieza(caballo, J, X2, Y2), J /= Jugador.
+jaqueAux([X, Y], Jugador) :- Jugador = negras, X2 is X + 1, Y2 is Y + 1, coordenadas(X2, Y2), pieza(peon, blancas, X2, Y2).
+jaqueAux([X, Y], Jugador) :- Movimientos = [[-2, 1], [-1, 2], [1, 2], [2, 1], [2, -1], [1, -2], [-1, -2], [-2, -1]],
+                          getElement(Movimientos, [DespX, DespY]), X2 is X + DespX, Y2 is Y + DespY, coordenadas(X2, Y2),
+                          pieza(caballo, J, X2, Y2), J \= Jugador.
 
 
 jaqueVMa(_, _, _, Estado)               :- Estado = jaqueado.
 jaqueVMa([X, Y], Jugador, Desp, Estado) :- Estado = continuar, 
                                            Desp2 is Desp + 1, X2 is X + Desp2, coordenadas(X2, Y), 
-                                           piezaVH([X2, Y], Jugador, Desp2, Estado2), jaqueVMa([X2, Y], Jugador, Desp2, Estado2).
+                                           piezaVH([X2, Y], Jugador, Desp2, Estado2), jaqueVMa([X, Y], Jugador, Desp2, Estado2).
 
-jaqueVMa(_, _, _, Estado)               :- Estado = jaqueado.
+jaqueVMe(_, _, _, Estado)               :- Estado = jaqueado.
 jaqueVMe([X, Y], Jugador, Desp, Estado) :- Estado = continuar, 
                                            Desp2 is Desp + 1, X2 is X - Desp2, coordenadas(X2, Y), 
-                                           piezaVH([X2, Y], Jugador, Desp2, Estado2), jaqueVMa([X2, Y], Jugador, Desp2, Estado2).
+                                           piezaVH([X2, Y], Jugador, Desp2, Estado2), jaqueVMe([X, Y], Jugador, Desp2, Estado2).
 
 jaqueHMa(_, _, _, Estado)               :- Estado = jaqueado.
 jaqueHMa([X, Y], Jugador, Desp, Estado) :- Estado = continuar,
                                            Desp2 is Desp + 1, Y2 is Y + Desp2, coordenadas(X, Y2), 
-                                           piezaVH([X, Y2], Jugador, Desp2, Estado2), jaqueVMa([X, Y2], Jugador, Desp2, Estado2).
+                                           piezaVH([X, Y2], Jugador, Desp2, Estado2), jaqueHMa([X, Y], Jugador, Desp2, Estado2).
 
 jaqueHMe(_, _, _, Estado)               :- Estado = jaqueado.
 jaqueHMe([X, Y], Jugador, Desp, Estado) :- Estado = continuar,
-                                           Desp2 is Desp + 1, Y2 is Y + Desp2, coordenadas(X, Y2), 
-                                           piezaVH([X, Y2], Jugador, Desp2, Estado2), jaqueVMa([X, Y2], Jugador, Desp2, Estado2).
+                                           Desp2 is Desp + 1, Y2 is Y - Desp2, coordenadas(X, Y2), 
+                                           piezaVH([X, Y2], Jugador, Desp2, Estado2), jaqueHMe([X, Y], Jugador, Desp2, Estado2).
 
 jaqueDIS(_, _, _, Estado)               :- Estado = jaqueado.
 jaqueDIS([X, Y], Jugador, Desp, Estado) :- Estado = continuar, 
@@ -363,28 +367,27 @@ jaqueDDI([X, Y], Jugador, Desp, Estado) :- Estado = continuar,
                                            Desp2 is Desp + 1, X2 is X + Desp2, Y2 is Y + Desp2, coordenadas(X2, Y2),
                                            piezaDiagonal([X2,Y2], Jugador, Desp, Estado2), jaqueDDI([X, Y], Jugador, Desp2, Estado2).
 
-
-
-
-piezaVH([X, Y], Jugador, _, Estado) :- pieza(torre, J, X, Y), J /= Jugador, Estado = jaqueado.
-piezaVH([X, Y], Jugador, _, Estado) :- pieza(dama, J, X, Y), J /= Jugador, Estado = jaqueado.
-piezaVH([X, Y], Jugador, Desp, Estado) :- Desp = 1, pieza(rey, J, X, Y), J /= Jugador, Estado = jaqueado.
-piezaVH([X, Y], Jugador, Desp, Estado) :- Desp > 1, pieza(rey, J, X, Y), J /= Jugador, Estado = bloqueado.
-piezaVH([X, Y], Jugador, _, Estado) :- pieza(peon, J, X, Y), J /= Jugador, Estado = bloqueado.
-piezaVH([X, Y], Jugador, _, Estado) :- pieza(alfil, J, X, Y), J /= Jugador, Estado = bloqueado.
-piezaVH([X, Y], Jugador, _, Estado) :- pieza(caballo, J, X, Y), J /= Jugador, Estado = bloqueado.
+piezaVH([X, Y], Jugador, _, Estado) :- pieza(torre, J, X, Y), J \= Jugador, Estado = jaqueado.
+piezaVH([X, Y], Jugador, _, Estado) :- pieza(dama, J, X, Y), J \= Jugador, Estado = jaqueado.
+piezaVH([X, Y], Jugador, Desp, Estado) :- Desp = 1, pieza(rey, J, X, Y), J \= Jugador, Estado = jaqueado.
+piezaVH([X, Y], Jugador, Desp, Estado) :- Desp > 1, pieza(rey, J, X, Y), J \= Jugador, Estado = bloqueado.
+piezaVH([X, Y], Jugador, _, Estado) :- pieza(peon, J, X, Y), J \= Jugador, Estado = bloqueado.
+piezaVH([X, Y], Jugador, _, Estado) :- pieza(alfil, J, X, Y), J \= Jugador, Estado = bloqueado.
+piezaVH([X, Y], Jugador, _, Estado) :- pieza(caballo, J, X, Y), J \= Jugador, Estado = bloqueado.
 piezaVH([X, Y], Jugador, _, Estado) :- pieza(_, Jugador, X, Y), Estado = bloqueado.
-piezaVH([X, Y], Jugador, _, Estado) :- not(pieza(_, _, X, Y)), Estado = continuar
+piezaVH([X, Y], _, _, Estado) :- not(pieza(_, _, X, Y)), Estado = continuar.
 
-piezaDiagonal([X, Y], Jugador, _, Estado) :- pieza(alfil, J, X, Y), J /= Jugador, Estado = jaqueado.
-piezaDiagonal([X, Y], Jugador, _, Estado) :- pieza(dama, J, X, Y), J /= Jugador, Estado = jaqueado.
-piezaDiagonal([X, Y], Jugador, Desp, Estado) :- Desp = 1, pieza(rey, J, X, Y), J /= Jugador, Estado = jaqueado.
-piezaDiagonal([X, Y], Jugador, Desp, Estado) :- Desp > 1, pieza(rey, J, X, Y), J /= Jugador, Estado = bloqueado.
-piezaDiagonal([X, Y], Jugador, _, Estado) :- pieza(peon, J, X, Y), J /= Jugador, Estado = bloqueado.
-piezaDiagonal([X, Y], Jugador, _, Estado) :- pieza(torre, J, X, Y), J /= Jugador, Estado = bloqueado.
-piezaDiagonal([X, Y], Jugador, _, Estado) :- pieza(caballo, J, X, Y), J /= Jugador, Estado = bloqueado.
+piezaDiagonal([X, Y], Jugador, _, Estado) :- pieza(alfil, J, X, Y), J \= Jugador, Estado = jaqueado.
+piezaDiagonal([X, Y], Jugador, _, Estado) :- pieza(dama, J, X, Y), J \= Jugador, Estado = jaqueado.
+piezaDiagonal([X, Y], Jugador, Desp, Estado) :- Desp = 1, pieza(rey, J, X, Y), J \= Jugador, Estado = jaqueado.
+piezaDiagonal([X, Y], Jugador, Desp, Estado) :- Desp > 1, pieza(rey, J, X, Y), J \= Jugador, Estado = bloqueado.
+piezaDiagonal([X, Y], Jugador, _, Estado) :- pieza(peon, J, X, Y), J \= Jugador, Estado = bloqueado.
+piezaDiagonal([X, Y], Jugador, _, Estado) :- pieza(torre, J, X, Y), J \= Jugador, Estado = bloqueado.
+piezaDiagonal([X, Y], Jugador, _, Estado) :- pieza(caballo, J, X, Y), J \= Jugador, Estado = bloqueado.
 piezaDiagonal([X, Y], Jugador, _, Estado) :- pieza(_, Jugador, X, Y), Estado = bloqueado.
-piezaDiagonal([X, Y], Jugador, _, Estado) :- not(pieza(_, _, X, Y)), Estado = continuar
+piezaDiagonal([X, Y], _, _, Estado) :- not(pieza(_, _, X, Y)), Estado = continuar.
+
+mate(Jugador, Tablero) :- not(mover(Jugador, Tablero, _)).
 
 
 /* moverTorre(negras, [1,1], 1, [torre(negras,1,1),peon(negras,2,2),peon(negras,2,4),rey(negras,1,4),
@@ -396,4 +399,18 @@ caballo(negras,4,6),rey(blancas,8,5)], Actual).
 moverPieza(negras, [4,4], [[-2, 1], [-1, 2], [1, 2], [2, 1], [2, -1], [1, -2], [-1, -2], [-2, -1]], [caballo(negras, 4, 4)], Actual) 
 
 moverPeon(negras, [2, 4], [alfil(blancas, 3, 5), torre(negras,1,1),peon(negras,7,2),peon(negras,2,4),rey(negras,1,4),
-caballo(negras,4,6),rey(blancas,8,5)], Actual). */
+caballo(negras,4,6),rey(blancas,8,5)], Actual). 
+
+mover(blancas, [torre(blancas,8,3), rey(blancas,8,2), torre(negras,8,8)], Actual)
+
+mover(negras, [torre(negras,1,7), rey(negras,1,8), torre(blancas,1,2)], Actual)
+
+mover(blancas, [torre(blancas,4,5), rey(blancas,5,4), alfil(negras,1,8)], Actual)
+
+mover(negras, [torre(negras,5,5), rey(negras,4,4), dama(blancas,8,8)], Actual)
+
+mover(negras, [rey(negras,1,3), peon(blancas, 3, 2), peon(blancas, 3, 5)], Actual).
+
+mover(blancas, [rey(blancas,3,2), caballo(negras,5,4)], Actual)
+
+*/
