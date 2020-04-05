@@ -389,6 +389,12 @@ piezaDiagonal([X, Y], _, _, Estado) :- not(pieza(_, _, X, Y)), Estado = continua
 
 mate(Jugador, Tablero) :- not(mover(Jugador, Tablero, _)).
 
+otroJugador(negras, X) :- X is blancas.
+otroJugador(blancas, X) :- X is negras.
+
+puedeGanar(Jugador,Actual,Final,0) :- X = OtroJugador, otroJugador(Jugador, OtroJugador), Actual =:= Final, mate(X, Actual).
+puedeGanar(Jugador,Actual,Final,N) :- X = OtroJugador, otroJugador(Jugador, OtroJugador), P = NuevoParcial, mover(Jugador,Actual,NuevoParcial), 
+                                      Q = Nuevo, mover(X,P,Nuevo), M is N-1, puedeGanar(Jugador, Q, Final, M).
 
 /* moverTorre(negras, [1,1], 1, [torre(negras,1,1),peon(negras,2,2),peon(negras,2,4),rey(negras,1,4),
 caballo(negras,4,6),rey(blancas,8,5),peon(blancas,7,5),dama(blancas,6,4), torre(blancas, 3, 1)], Actual).
