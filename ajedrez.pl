@@ -54,7 +54,10 @@ numeroPiezas(Tablero, Color) :- numPiezas(Tablero, Color, 0, 0, 0, 0, 0, 0).
 /*Given a representation of the chess board's state in the form of a list of pieces*/
 valido(Tablero) :- validarPosiciones(Tablero, []), numeroPiezas(Tablero, blancas), numeroPiezas(Tablero, negras).
 
+/********************************************* SECOND PART (UGH) ************************************************/
 
+% mostrar(Tablero) :- valido(Tablero), mostrarTablero(Tablero, []).
+% mostrarTablero()
 
 /********************* THIRD PART (I SKIPPED THE SECOND, I HATE PRINTING STUFF THAT WAY)************************/
 
@@ -391,12 +394,66 @@ piezaDiagonal([X, Y], _, _, Estado) :- not(pieza(_, _, X, Y)), Estado = continua
 
 mate(Jugador, Tablero) :- not(mover(Jugador, Tablero, _)).
 
+/********************************************* FOURTH PART (UGH) ************************************************/
+
 otroJugador(negras, X) :- X = blancas.
 otroJugador(blancas, X) :- X = negras.
 
 puedeGanar(Jugador,Actual,Final,0) :- X = OtroJugador, otroJugador(Jugador, OtroJugador), Actual =:= Final, mate(X, Actual).
 puedeGanar(Jugador,Actual,Final,N) :- X = OtroJugador, otroJugador(Jugador, OtroJugador), ((Actual =:= Final, mate(X, Actual)) ; (P = NuevoParcial, mover(Jugador,Actual,NuevoParcial), 
                                       Q = Nuevo, mover(X,P,Nuevo), M is N-1, puedeGanar(Jugador, Q, Final, M))).
+
+/********************************************* FIFTH PART (UGH) ************************************************/
+
+% Pedir el path del archivo de entrada y cada fila para poder importarlo como un tablero.
+leer(Tablero) :- read(FileNameAtom), atom_string(FileNameAtom, FileName), open(FileName, read, Str), 
+                 read(Str, _), read(Str, Row1), atom_string(Row1, SetRow1),  split_string(SetRow1, "|", "", List1),
+                 read(Str, _), read(Str, Row2), atom_string(Row2, SetRow2),  split_string(SetRow2, "|", "", List2), 
+                 read(Str, _), read(Str, Row3), atom_string(Row3, SetRow3),  split_string(SetRow3, "|", "", List3), 
+                 read(Str, _), read(Str, Row4), atom_string(Row4, SetRow4),  split_string(SetRow4, "|", "", List4), 
+                 read(Str, _), read(Str, Row5), atom_string(Row5, SetRow5),  split_string(SetRow5, "|", "", List5), 
+                 read(Str, _), read(Str, Row6), atom_string(Row6, SetRow6),  split_string(SetRow6, "|", "", List6), 
+                 read(Str, _), read(Str, Row7), atom_string(Row7, SetRow7),  split_string(SetRow7, "|", "", List7), 
+                 read(Str, _), read(Str, Row8), atom_string(Row8, SetRow8),  split_string(SetRow8, "|", "", List8),  
+                 close(Str), agregarATablero(Tablero, List1, 1, 1), agregarATablero(Tablero, List1, 1, 1),
+                 agregarATablero(Fila1, List1, 1, 1), agregarATablero(Fila2, List2, 2, 1), agregarATablero(Fila3, List3, 3, 1),
+                 agregarATablero(Fila4, List4, 4, 1), agregarATablero(Fila5, List5, 5, 1), agregarATablero(Fila6, List6, 6, 1),
+                 agregarATablero(Fila7, List7, 7, 1), agregarATablero(Fila8, List8, 8, 1),
+                 append(Fila1, Fila2, Fila12), append(Fila12, Fila3, Fila13), append(Fila13, Fila4, Fila14), 
+                 append(Fila14, Fila5, Fila15), append(Fila15, Fila6, Fila16), append(Fila16, Fila7, Fila17),
+                 append(Fila17, Fila8, Tablero).
+
+% Unificar en la variable tablero la informacion de la fila dada.
+agregarATablero(Tablero, [' '|Lista], Fila, Columna) :- R is Fila, C is Columna, CN is C+1, agregarATablero(TableroAux, Lista, R, CN), append([], TableroAux, Tablero).
+agregarATablero(Tablero, [' '], _, _) :- append([], [], Tablero).
+
+agregarATablero(Tablero, ['PN'|Lista], Fila, Columna) :- R is Fila, C is Columna, CN is C+1, agregarATablero(TableroAux, Lista, R, CN), append([peon(negras, R, C)], TableroAux, Tablero).
+agregarATablero(Tablero, ['CN'|Lista], Fila, Columna) :- R is Fila, C is Columna, CN is C+1, agregarATablero(TableroAux, Lista, R, CN), append([caballo(negras, R, C)], TableroAux, Tablero).
+agregarATablero(Tablero, ['AN'|Lista], Fila, Columna) :- R is Fila, C is Columna, CN is C+1, agregarATablero(TableroAux, Lista, R, CN), append([alfil(negras, R, C)], TableroAux, Tablero).
+agregarATablero(Tablero, ['TN'|Lista], Fila, Columna) :- R is Fila, C is Columna, CN is C+1, agregarATablero(TableroAux, Lista, R, CN), append([torre(negras, R, C)], TableroAux, Tablero).
+agregarATablero(Tablero, ['DN'|Lista], Fila, Columna) :- R is Fila, C is Columna, CN is C+1, agregarATablero(TableroAux, Lista, R, CN), append([dama(negras, R, C)], TableroAux, Tablero).
+agregarATablero(Tablero, ['RN'|Lista], Fila, Columna) :- R is Fila, C is Columna, CN is C+1, agregarATablero(TableroAux, Lista, R, CN), append([rey(negras, R, C)], TableroAux, Tablero).
+
+agregarATablero(Tablero, ['PN'], Fila, Columna) :- R is Fila, C is Columna, append([], [peon(negras, R, C)], Tablero).
+agregarATablero(Tablero, ['CN'], Fila, Columna) :- R is Fila, C is Columna, append([], [caballo(negras, R, C)], Tablero).
+agregarATablero(Tablero, ['AN'], Fila, Columna) :- R is Fila, C is Columna, append([], [alfil(negras, R, C)], Tablero).
+agregarATablero(Tablero, ['TN'], Fila, Columna) :- R is Fila, C is Columna, append([], [torre(negras, R, C)], Tablero).
+agregarATablero(Tablero, ['DN'], Fila, Columna) :- R is Fila, C is Columna, append([], [dama(negras, R, C)], Tablero).
+agregarATablero(Tablero, ['RN'], Fila, Columna) :- R is Fila, C is Columna, append([], [rey(negras, R, C)], Tablero).
+
+agregarATablero(Tablero, ['PB'|Lista], Fila, Columna) :- R is Fila, C is Columna, CN is C+1, agregarATablero(TableroAux, Lista, R, CN), append([peon(blancas, R, C)], TableroAux, Tablero).
+agregarATablero(Tablero, ['CB'|Lista], Fila, Columna) :- R is Fila, C is Columna, CN is C+1, agregarATablero(TableroAux, Lista, R, CN), append([caballo(blancas, R, C)], TableroAux, Tablero).
+agregarATablero(Tablero, ['AB'|Lista], Fila, Columna) :- R is Fila, C is Columna, CN is C+1, agregarATablero(TableroAux, Lista, R, CN), append([alfil(blancas, R, C)], TableroAux, Tablero).
+agregarATablero(Tablero, ['TB'|Lista], Fila, Columna) :- R is Fila, C is Columna, CN is C+1, agregarATablero(TableroAux, Lista, R, CN), append([torre(blancas, R, C)], TableroAux, Tablero).
+agregarATablero(Tablero, ['DB'|Lista], Fila, Columna) :- R is Fila, C is Columna, CN is C+1, agregarATablero(TableroAux, Lista, R, CN), append([dama(blancas, R, C)], TableroAux, Tablero).
+agregarATablero(Tablero, ['RB'|Lista], Fila, Columna) :- R is Fila, C is Columna, CN is C+1, agregarATablero(TableroAux, Lista, R, CN), append([rey(blancas, R, C)], TableroAux, Tablero).
+
+agregarATablero(Tablero, ['PB'], Fila, Columna) :- R is Fila, C is Columna, append([], [peon(blancas, R, C)], Tablero).
+agregarATablero(Tablero, ['CB'], Fila, Columna) :- R is Fila, C is Columna, append([], [caballo(blancas, R, C)], Tablero).
+agregarATablero(Tablero, ['AB'], Fila, Columna) :- R is Fila, C is Columna, append([], [alfil(blancas, R, C)], Tablero).
+agregarATablero(Tablero, ['TB'], Fila, Columna) :- R is Fila, C is Columna, append([], [torre(blancas, R, C)], Tablero).
+agregarATablero(Tablero, ['DB'], Fila, Columna) :- R is Fila, C is Columna, append([], [dama(blancas, R, C)], Tablero).
+agregarATablero(Tablero, ['RB'], Fila, Columna) :- R is Fila, C is Columna, append([], [rey(blancas, R, C)], Tablero).
 
 /* moverTorre(negras, [1,1], 1, [torre(negras,1,1),peon(negras,2,2),peon(negras,2,4),rey(negras,1,4),
 caballo(negras,4,6),rey(blancas,8,5),peon(blancas,7,5),dama(blancas,6,4), torre(blancas, 3, 1)], Actual).
