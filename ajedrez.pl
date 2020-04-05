@@ -54,12 +54,47 @@ numeroPiezas(Tablero, Color) :- numPiezas(Tablero, Color, 0, 0, 0, 0, 0, 0).
 /*Given a representation of the chess board's state in the form of a list of pieces*/
 valido(Tablero) :- validarPosiciones(Tablero, []), numeroPiezas(Tablero, blancas), numeroPiezas(Tablero, negras).
 
-/********************************************* SECOND PART (UGH) ************************************************/
+/********************************************* SECOND PART ************************************************/
 
-% mostrar(Tablero) :- valido(Tablero), mostrarTablero(Tablero, []).
-% mostrarTablero()
+mostrar(Tablero) :- valido(Tablero), sustituirEnTablero(Tablero, ["--|--|--|--|--|--|--|--","\n",
+"11", "|", "12", "|", "13", "|", "14", "|", "15", "|", "16", "|", "17", "|", "18","\n",
+"--+--+--+--+--+--+--+--","\n",
+"21", "|", "22", "|", "23", "|", "24", "|", "25", "|", "26", "|", "27", "|", "28","\n",
+"--+--+--+--+--+--+--+--","\n",
+"31", "|", "32", "|", "33", "|", "34", "|", "35", "|", "36", "|", "37", "|", "38","\n",
+"--+--+--+--+--+--+--+--","\n",
+"41", "|", "42", "|", "43", "|", "44", "|", "45", "|", "46", "|", "47", "|", "48","\n",
+"--+--+--+--+--+--+--+--","\n",
+"51", "|", "52", "|", "53", "|", "54", "|", "55", "|", "56", "|", "57", "|", "58","\n",
+"--+--+--+--+--+--+--+--","\n",
+"61", "|", "62", "|", "63", "|", "64", "|", "65", "|", "66", "|", "67", "|", "68","\n",
+"--+--+--+--+--+--+--+--","\n",
+"71", "|", "72", "|", "73", "|", "74", "|", "75", "|", "76", "|", "77", "|", "78","\n",
+"--+--+--+--+--+--+--+--","\n",
+"81", "|", "82", "|", "83", "|", "84", "|", "85", "|", "86", "|", "87", "|", "88","\n",
+"--|--|--|--|--|--|--|--", "\n"], TableroParaImprimir), mostrarTablero(TableroParaImprimir).
 
-/********************* THIRD PART (I SKIPPED THE SECOND, I HATE PRINTING STUFF THAT WAY)************************/
+mostrarTablero([String | Tablero]) :- (number_string(_, String) -> write("  ") ; write(String)), mostrarTablero(Tablero).
+mostrarTablero([String]) :- (number_string(_, String) -> write("  ") ; write(String)).
+
+stringPlayer(blancas, String) :- String = 'B'.
+stringPlayer(negras, String) :- String = 'N'.
+
+sustituirEnTablero([peon(Jugador, Fila, Columna) | Tablero], ListaTablero, ListaTableroNuevo) :- sustituirEnTablero(Tablero, ListaTablero, ListaTableroNuevoAux), stringPlayer(Jugador, StringJugador), string_concat('P', StringJugador, StringPieza), Pos is Fila*10+Columna, number_string(Pos, PosStr), select(PosStr, ListaTableroNuevoAux, StringPieza, ListaTableroNuevo).
+sustituirEnTablero([torre(Jugador, Fila, Columna) | Tablero], ListaTablero, ListaTableroNuevo) :- sustituirEnTablero(Tablero, ListaTablero, ListaTableroNuevoAux), stringPlayer(Jugador, StringJugador), string_concat('T', StringJugador, StringPieza), Pos is Fila*10+Columna, number_string(Pos, PosStr), select(PosStr, ListaTableroNuevoAux, StringPieza, ListaTableroNuevo).
+sustituirEnTablero([caballo(Jugador, Fila, Columna) | Tablero], ListaTablero, ListaTableroNuevo) :- sustituirEnTablero(Tablero, ListaTablero, ListaTableroNuevoAux), stringPlayer(Jugador, StringJugador), string_concat('C', StringJugador, StringPieza), Pos is Fila*10+Columna, number_string(Pos, PosStr), select(PosStr, ListaTableroNuevoAux, StringPieza, ListaTableroNuevo).
+sustituirEnTablero([alfil(Jugador, Fila, Columna) | Tablero], ListaTablero, ListaTableroNuevo) :- sustituirEnTablero(Tablero, ListaTablero, ListaTableroNuevoAux), stringPlayer(Jugador, StringJugador), string_concat('A', StringJugador, StringPieza), Pos is Fila*10+Columna, number_string(Pos, PosStr), select(PosStr, ListaTableroNuevoAux, StringPieza, ListaTableroNuevo).
+sustituirEnTablero([dama(Jugador, Fila, Columna) | Tablero], ListaTablero, ListaTableroNuevo) :- sustituirEnTablero(Tablero, ListaTablero, ListaTableroNuevoAux), stringPlayer(Jugador, StringJugador), string_concat('D', StringJugador, StringPieza), Pos is Fila*10+Columna, number_string(Pos, PosStr), select(PosStr, ListaTableroNuevoAux, StringPieza, ListaTableroNuevo).
+sustituirEnTablero([rey(Jugador, Fila, Columna) | Tablero], ListaTablero, ListaTableroNuevo) :- sustituirEnTablero(Tablero, ListaTablero, ListaTableroNuevoAux), stringPlayer(Jugador, StringJugador), string_concat('R', StringJugador, StringPieza), Pos is Fila*10+Columna, number_string(Pos, PosStr), select(PosStr, ListaTableroNuevoAux, StringPieza, ListaTableroNuevo).
+
+sustituirEnTablero([peon(Jugador, Fila, Columna)], ListaTablero, ListaTableroNuevo) :- stringPlayer(Jugador, StringJugador), string_concat('P', StringJugador, StringPieza), Pos is Fila*10+Columna, number_string(Pos, PosStr), select(PosStr, ListaTablero, StringPieza, ListaTableroNuevo).
+sustituirEnTablero([torre(Jugador, Fila, Columna)], ListaTablero, ListaTableroNuevo) :- stringPlayer(Jugador, StringJugador), string_concat('T', StringJugador, StringPieza), Pos is Fila*10+Columna, number_string(Pos, PosStr), select(PosStr, ListaTablero, StringPieza, ListaTableroNuevo).
+sustituirEnTablero([caballo(Jugador, Fila, Columna)], ListaTablero, ListaTableroNuevo) :- stringPlayer(Jugador, StringJugador), string_concat('C', StringJugador, StringPieza), Pos is Fila*10+Columna, number_string(Pos, PosStr), select(PosStr, ListaTablero, StringPieza, ListaTableroNuevo).
+sustituirEnTablero([alfil(Jugador, Fila, Columna)], ListaTablero, ListaTableroNuevo) :- stringPlayer(Jugador, StringJugador), string_concat('A', StringJugador, StringPieza), Pos is Fila*10+Columna, number_string(Pos, PosStr), select(PosStr, ListaTablero, StringPieza, ListaTableroNuevo).
+sustituirEnTablero([dama(Jugador, Fila, Columna)], ListaTablero, ListaTableroNuevo) :- stringPlayer(Jugador, StringJugador), string_concat('D', StringJugador, StringPieza), Pos is Fila*10+Columna, number_string(Pos, PosStr), select(PosStr, ListaTablero, StringPieza, ListaTableroNuevo).
+sustituirEnTablero([rey(Jugador, Fila, Columna)], ListaTablero, ListaTableroNuevo) :- stringPlayer(Jugador, StringJugador), string_concat('R', StringJugador, StringPieza), Pos is Fila*10+Columna, number_string(Pos, PosStr), select(PosStr, ListaTablero, StringPieza, ListaTableroNuevo).
+
+/****************************************************** THIRD PART *********************************************************/
 
 
 /*Checks the state of a given square: Empty (0), occupied by the player (2) or by the enemy (1). It unifies NuevoTablero
