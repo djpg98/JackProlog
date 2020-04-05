@@ -399,9 +399,21 @@ mate(Jugador, Tablero) :- not(mover(Jugador, Tablero, _)).
 otroJugador(negras, X) :- X = blancas.
 otroJugador(blancas, X) :- X = negras.
 
-puedeGanar(Jugador,Actual,Final,0) :- X = OtroJugador, otroJugador(Jugador, OtroJugador), Actual =:= Final, mate(X, Actual).
-puedeGanar(Jugador,Actual,Final,N) :- X = OtroJugador, otroJugador(Jugador, OtroJugador), ((Actual =:= Final, mate(X, Actual)) ; (P = NuevoParcial, mover(Jugador,Actual,NuevoParcial), 
-                                      Q = Nuevo, mover(X,P,Nuevo), M is N-1, puedeGanar(Jugador, Q, Final, M))).
+/*puedeGanar(Jugador,Actual,Final,0) :- X = OtroJugador, otroJugador(Jugador, OtroJugador), Actual == Final, mate(X, Actual).
+puedeGanar(Jugador,Actual,Final,N) :- N > 0, X = OtroJugador, otroJugador(Jugador, OtroJugador), ((Actual == Final, mate(X, Actual)) ; (P = NuevoParcial, mover(Jugador,Actual,NuevoParcial), 
+                                      Q = Nuevo, mover(X,P,Nuevo), M is N-1, puedeGanar(Jugador, Q, Final, M))). */
+
+puedeGanar(Jugador,Actual,Final,1) :- otroJugador(Jugador, OtroJugador), mover(Jugador,Actual,Temp), mate(OtroJugador, Temp), 
+                                      Final = Temp.
+puedeGanar(Jugador,Actual,Final,N) :- number(N), N > 1, otroJugador(Jugador, OtroJugador), mover(Jugador, Actual, Temp), 
+                                      (mate(OtroJugador, Temp), Final = Temp;
+                                      mover(OtroJugador, Temp, Temp2),M is N - 1, puedeGanar(Jugador,Temp2,Final,M)).
+puedeGanar(Jugador,Actual,Final,N) :- var(N), puedeGanarAux(Jugador, Actual, Final, 1).
+
+puedeGanarAux(Jugador,Actual,Final,N) :- puedeGanar(Jugador,Actual,Final,N).
+puedeGanarAux(Jugador,Actual,Final,N) :- M is N + 1, puedeGanarAux(Jugador,Actual,Final,M).
+puedeGanarAux(_,_,_,N) :- N = 5899, fail. %Número máximo de movimientos en toería bajo la regla de los 50 movimientos
+
 
 /********************************************* FIFTH PART (UGH) ************************************************/
 
@@ -477,5 +489,13 @@ mover(negras, [torre(negras,5,5), rey(negras,4,4), dama(blancas,8,8)], Actual)
 mover(negras, [rey(negras,1,3), peon(blancas, 3, 2), peon(blancas, 3, 5)], Actual).
 
 mover(blancas, [rey(blancas,3,2), caballo(negras,5,4)], Actual)
+
+puedeGanar(negras, [rey(blancas,8,3), rey(negras,5,2), dama(negras,7,3)], Final, 1).
+
+puedeGanar(blancas, [rey(negras,4,5), dama(blancas,7,7), torre(blancas,8,6), rey(blancas,8,8)], Final, 5)
+
+mate(negras, [rey(negras, 1, 3), dama(blancas, 1, 7), torre(blancas, 2, 6), rey(blancas, 8, 8)])
+
+puedeGanar(blancas, [rey(negras,4,5), dama(blancas,7,7), torre(blancas,8,6), rey(blancas,8,8)], rey(negras, 1, 3), dama(blancas, 1, 7), torre(blancas, 2, 6), rey(blancas, 8, 8)], 5).
 
 */
