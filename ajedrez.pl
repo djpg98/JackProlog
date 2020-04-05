@@ -1,10 +1,15 @@
+% CI-3661 Proyecto II: Jaque Mate, Jack
+% Miembros:  
+% Diego Peña 15-11095  
+% Wilfredo Graterol 15-10639
+
 :- dynamic pieza/4.
 
 /*These are the only facts available*/
 jugador(negras).
 jugador(blancas).
 
-/********************* FIRST PART ************************/
+/********************************************* FIRST PART ************************************************/
 
 /*Determines if the coordinates of a square are valid*/
 coordenadas(X, Y) :- 1 =< X, X =< 8, 1 =< Y, Y =< 8.
@@ -56,6 +61,7 @@ valido(Tablero) :- validarPosiciones(Tablero, []), numeroPiezas(Tablero, blancas
 
 /********************************************* SECOND PART ************************************************/
 
+% In an initial board it substitutes every piece then prints it
 mostrar(Tablero) :- valido(Tablero), sustituirEnTablero(Tablero, ["--|--|--|--|--|--|--|--","\n",
 "11", "|", "12", "|", "13", "|", "14", "|", "15", "|", "16", "|", "17", "|", "18","\n",
 "--+--+--+--+--+--+--+--","\n",
@@ -74,12 +80,15 @@ mostrar(Tablero) :- valido(Tablero), sustituirEnTablero(Tablero, ["--|--|--|--|-
 "81", "|", "82", "|", "83", "|", "84", "|", "85", "|", "86", "|", "87", "|", "88","\n",
 "--|--|--|--|--|--|--|--", "\n"], TableroParaImprimir), mostrarTablero(TableroParaImprimir).
 
+% Prints the given array string presentation of a board
 mostrarTablero([String | Tablero]) :- (number_string(_, String) -> write("  ") ; write(String)), mostrarTablero(Tablero).
 mostrarTablero([String]) :- (number_string(_, String) -> write("  ") ; write(String)).
 
+% Returns the string representing the player
 stringPlayer(blancas, String) :- String = 'B'.
 stringPlayer(negras, String) :- String = 'N'.
 
+% Adds to a string representation of a board the pieces of the given board
 sustituirEnTablero([peon(Jugador, Fila, Columna) | Tablero], ListaTablero, ListaTableroNuevo) :- sustituirEnTablero(Tablero, ListaTablero, ListaTableroNuevoAux), stringPlayer(Jugador, StringJugador), string_concat('P', StringJugador, StringPieza), Pos is Fila*10+Columna, number_string(Pos, PosStr), select(PosStr, ListaTableroNuevoAux, StringPieza, ListaTableroNuevo).
 sustituirEnTablero([torre(Jugador, Fila, Columna) | Tablero], ListaTablero, ListaTableroNuevo) :- sustituirEnTablero(Tablero, ListaTablero, ListaTableroNuevoAux), stringPlayer(Jugador, StringJugador), string_concat('T', StringJugador, StringPieza), Pos is Fila*10+Columna, number_string(Pos, PosStr), select(PosStr, ListaTableroNuevoAux, StringPieza, ListaTableroNuevo).
 sustituirEnTablero([caballo(Jugador, Fila, Columna) | Tablero], ListaTablero, ListaTableroNuevo) :- sustituirEnTablero(Tablero, ListaTablero, ListaTableroNuevoAux), stringPlayer(Jugador, StringJugador), string_concat('C', StringJugador, StringPieza), Pos is Fila*10+Columna, number_string(Pos, PosStr), select(PosStr, ListaTableroNuevoAux, StringPieza, ListaTableroNuevo).
@@ -94,7 +103,7 @@ sustituirEnTablero([alfil(Jugador, Fila, Columna)], ListaTablero, ListaTableroNu
 sustituirEnTablero([dama(Jugador, Fila, Columna)], ListaTablero, ListaTableroNuevo) :- stringPlayer(Jugador, StringJugador), string_concat('D', StringJugador, StringPieza), Pos is Fila*10+Columna, number_string(Pos, PosStr), select(PosStr, ListaTablero, StringPieza, ListaTableroNuevo).
 sustituirEnTablero([rey(Jugador, Fila, Columna)], ListaTablero, ListaTableroNuevo) :- stringPlayer(Jugador, StringJugador), string_concat('R', StringJugador, StringPieza), Pos is Fila*10+Columna, number_string(Pos, PosStr), select(PosStr, ListaTablero, StringPieza, ListaTableroNuevo).
 
-/****************************************************** THIRD PART *********************************************************/
+/********************************************* THIRD PART ************************************************/
 
 
 /*Checks the state of a given square: Empty (0), occupied by the player (2) or by the enemy (1). It unifies NuevoTablero
@@ -337,9 +346,6 @@ moverDDI(Jugador, [X, Y], _, Desp, Estado, Anterior, Actual) :- Estado == 0,
 moverDDI(_, [X, Y], [X2, Y2], _, Estado, Anterior, Actual)   :- Estado == 1, 
                                                                 actualizarTablero(X, Y, X2, Y2, Anterior, Actual).
 
-/*jaqueAux([X, Y], Jugador) :- X2 is X + 1, coordenadas(X2, Y), piezaVH([X2, Y], Jugador, 1, Estado), write(Estado), nl,
-                          jaqueVMa([X, Y], Jugador, 1, Estado).*/
-
 jaque(Jugador, Tablero) :- estadoTablero(Tablero), pieza(rey, Jugador, X, Y), jaqueAux([X, Y], Jugador).
 
 jaqueAux([X, Y], Jugador) :- X2 is X + 1, coordenadas(X2, Y), piezaVH([X2, Y], Jugador, 1, Estado),
@@ -429,14 +435,10 @@ piezaDiagonal([X, Y], _, _, Estado) :- not(pieza(_, _, X, Y)), Estado = continua
 
 mate(Jugador, Tablero) :- not(mover(Jugador, Tablero, _)).
 
-/********************************************* FOURTH PART (UGH) ************************************************/
+/********************************************* FOURTH PART ************************************************/
 
 otroJugador(negras, X) :- X = blancas.
 otroJugador(blancas, X) :- X = negras.
-
-/*puedeGanar(Jugador,Actual,Final,0) :- X = OtroJugador, otroJugador(Jugador, OtroJugador), Actual == Final, mate(X, Actual).
-puedeGanar(Jugador,Actual,Final,N) :- N > 0, X = OtroJugador, otroJugador(Jugador, OtroJugador), ((Actual == Final, mate(X, Actual)) ; (P = NuevoParcial, mover(Jugador,Actual,NuevoParcial), 
-                                      Q = Nuevo, mover(X,P,Nuevo), M is N-1, puedeGanar(Jugador, Q, Final, M))). */
 
 puedeGanar(Jugador,Actual,Final,1) :- otroJugador(Jugador, OtroJugador), mover(Jugador,Actual,Temp), mate(OtroJugador, Temp), 
                                       Final = Temp.
@@ -447,13 +449,13 @@ puedeGanar(Jugador,Actual,Final,N) :- var(N), puedeGanarAux(Jugador, Actual, Fin
 
 puedeGanarAux(Jugador,Actual,Final,N) :- puedeGanar(Jugador,Actual,Final,N).
 puedeGanarAux(Jugador,Actual,Final,N) :- M is N + 1, puedeGanarAux(Jugador,Actual,Final,M).
-puedeGanarAux(_,_,_,N) :- N = 5899, fail. %Número máximo de movimientos en toería bajo la regla de los 50 movimientos
+puedeGanarAux(_,_,_,N) :- N = 5899, fail. % Número máximo de movimientos en toería bajo la regla de los 50 movimientos
 
 
-/********************************************* FIFTH PART (UGH) ************************************************/
+/********************************************* FIFTH PART ************************************************/
 
-% Pedir el path del archivo de entrada y cada fila para poder importarlo como un tablero.
-leer(Tablero) :- read(FileNameAtom), atom_string(FileNameAtom, FileName), open(FileName, read, Str), 
+% Gets from the user the path of the file containing the board and then adds each row to the board, leaves the result unified in Tablero
+leer(Tablero) :- write('De el nombre del archivo sin ninguna extension: \n'), read(FileNameAtom), atom_string(FileNameAtom, FileName), open(FileName, read, Str), 
                  read_string(Str, "\n", "", _, _), read_string(Str, "\n", "", _, SetRow1),  split_string(SetRow1, "|", "", List1),
                  read_string(Str, "\n", "", _, _), read_string(Str, "\n", "", _, SetRow2),  split_string(SetRow2, "|", "", List2), 
                  read_string(Str, "\n", "", _, _), read_string(Str, "\n", "", _, SetRow3),  split_string(SetRow3, "|", "", List3), 
@@ -470,7 +472,9 @@ leer(Tablero) :- read(FileNameAtom), atom_string(FileNameAtom, FileName), open(F
                  append(Fila14, Fila5, Fila15), append(Fila15, Fila6, Fila16), append(Fila16, Fila7, Fila17),
                  append(Fila17, Fila8, Tablero).
 
-% Unificar en la variable tablero la informacion de la fila dada.
+% Unifies in the variable Tablero the information of the given row
+agregarATablero(Tablero, ["  "|Lista], Fila, Columna) :- R is Fila, C is Columna, CN is C+1, agregarATablero(TableroAux, Lista, R, CN), append([], TableroAux, Tablero).
+agregarATablero(Tablero, ["  "], _, _) :- append([], [], Tablero).
 agregarATablero(Tablero, [" "|Lista], Fila, Columna) :- R is Fila, C is Columna, CN is C+1, agregarATablero(TableroAux, Lista, R, CN), append([], TableroAux, Tablero).
 agregarATablero(Tablero, [" "], _, _) :- append([], [], Tablero).
 agregarATablero(Tablero, [""|Lista], Fila, Columna) :- R is Fila, C is Columna, CN is C+1, agregarATablero(TableroAux, Lista, R, CN), append([], TableroAux, Tablero).
@@ -503,36 +507,3 @@ agregarATablero(Tablero, ["AB"], Fila, Columna) :- R is Fila, C is Columna, appe
 agregarATablero(Tablero, ["TB"], Fila, Columna) :- R is Fila, C is Columna, append([], [torre(blancas, R, C)], Tablero).
 agregarATablero(Tablero, ["DB"], Fila, Columna) :- R is Fila, C is Columna, append([], [dama(blancas, R, C)], Tablero).
 agregarATablero(Tablero, ["RB"], Fila, Columna) :- R is Fila, C is Columna, append([], [rey(blancas, R, C)], Tablero).
-
-/* moverTorre(negras, [1,1], 1, [torre(negras,1,1),peon(negras,2,2),peon(negras,2,4),rey(negras,1,4),
-caballo(negras,4,6),rey(blancas,8,5),peon(blancas,7,5),dama(blancas,6,4), torre(blancas, 3, 1)], Actual).
-
-moverAlfil(blancas, [5, 5], 1, [alfil(blancas, 5, 5), torre(negras,1,1),peon(negras,2,2),peon(negras,2,4),rey(negras,1,4),
-caballo(negras,4,6),rey(blancas,8,5)], Actual).
-
-moverPieza(negras, [4,4], [[-2, 1], [-1, 2], [1, 2], [2, 1], [2, -1], [1, -2], [-1, -2], [-2, -1]], [caballo(negras, 4, 4)], Actual) 
-
-moverPeon(negras, [2, 4], [alfil(blancas, 3, 5), torre(negras,1,1),peon(negras,7,2),peon(negras,2,4),rey(negras,1,4),
-caballo(negras,4,6),rey(blancas,8,5)], Actual). 
-
-mover(blancas, [torre(blancas,8,3), rey(blancas,8,2), torre(negras,8,8)], Actual)
-
-mover(negras, [torre(negras,1,7), rey(negras,1,8), torre(blancas,1,2)], Actual)
-
-mover(blancas, [torre(blancas,4,5), rey(blancas,5,4), alfil(negras,1,8)], Actual)
-
-mover(negras, [torre(negras,5,5), rey(negras,4,4), dama(blancas,8,8)], Actual)
-
-mover(negras, [rey(negras,1,3), peon(blancas, 3, 2), peon(blancas, 3, 5)], Actual).
-
-mover(blancas, [rey(blancas,3,2), caballo(negras,5,4)], Actual)
-
-puedeGanar(negras, [rey(blancas,8,3), rey(negras,5,2), dama(negras,7,3)], Final, 1).
-
-puedeGanar(blancas, [rey(negras,4,5), dama(blancas,7,7), torre(blancas,8,6), rey(blancas,8,8)], Final, 5)
-
-mate(negras, [rey(negras, 1, 3), dama(blancas, 1, 7), torre(blancas, 2, 6), rey(blancas, 8, 8)])
-
-puedeGanar(blancas, [rey(negras,4,5), dama(blancas,7,7), torre(blancas,8,6), rey(blancas,8,8)], rey(negras, 1, 3), dama(blancas, 1, 7), torre(blancas, 2, 6), rey(blancas, 8, 8)], 5).
-
-*/
