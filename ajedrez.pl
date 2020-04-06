@@ -322,7 +322,7 @@ moverDDS(_, [X, Y], [X2, Y2], _, Estado, Anterior, Actual)   :- Estado == 0,
 moverDDS(Jugador, [X, Y], _, Desp, Estado, Anterior, Actual) :- Estado == 0, 
                                                                 Desp2 is Desp + 1, X2 is X - Desp2, Y2 is Y + Desp2, coordenadas(X2, Y2), 
                                                                 libre(Jugador, X2, Y2, Anterior, NuevoTablero, NuevoEstado),
-                                                                moverDDS(Jugador, [X, Y], [X2, Y], Desp2, NuevoEstado, NuevoTablero, Actual).
+                                                                moverDDS(Jugador, [X, Y], [X2, Y2], Desp2, NuevoEstado, NuevoTablero, Actual).
 moverDDS(_, [X, Y], [X2, Y2], _, Estado, Anterior, Actual)   :- Estado == 1, 
                                                                 actualizarTablero(X, Y, X2, Y2, Anterior, Actual).
 
@@ -396,22 +396,22 @@ jaqueHMe([X, Y], Jugador, Desp, Estado) :- Estado = continuar,
 jaqueDIS(_, _, _, Estado)               :- Estado = jaqueado.
 jaqueDIS([X, Y], Jugador, Desp, Estado) :- Estado = continuar, 
                                            Desp2 is Desp + 1, X2 is X - Desp2, Y2 is Y - Desp2, coordenadas(X2, Y2),
-                                           piezaDiagonal([X2,Y2], Jugador, Desp, Estado2), jaqueDIS([X, Y], Jugador, Desp2, Estado2).
+                                           piezaDiagonal([X2,Y2], Jugador, Desp2, Estado2), jaqueDIS([X, Y], Jugador, Desp2, Estado2).
 
 jaqueDDS(_, _, _, Estado)               :- Estado = jaqueado.
 jaqueDDS([X, Y], Jugador, Desp, Estado) :- Estado = continuar, 
                                            Desp2 is Desp + 1, X2 is X - Desp2, Y2 is Y + Desp2, coordenadas(X2, Y2),
-                                           piezaDiagonal([X2,Y2], Jugador, Desp, Estado2), jaqueDDS([X, Y], Jugador, Desp2, Estado2).
+                                           piezaDiagonal([X2,Y2], Jugador, Desp2, Estado2), jaqueDDS([X, Y], Jugador, Desp2, Estado2).
 
 jaqueDII(_, _, _, Estado)               :- Estado = jaqueado.
 jaqueDII([X, Y], Jugador, Desp, Estado) :- Estado = continuar, 
                                            Desp2 is Desp + 1, X2 is X + Desp2, Y2 is Y - Desp2, coordenadas(X2, Y2),
-                                           piezaDiagonal([X2,Y2], Jugador, Desp, Estado2), jaqueDII([X, Y], Jugador, Desp2, Estado2).
+                                           piezaDiagonal([X2,Y2], Jugador, Desp2, Estado2), jaqueDII([X, Y], Jugador, Desp2, Estado2).
 
 jaqueDDI(_, _, _, Estado)               :- Estado = jaqueado.
 jaqueDDI([X, Y], Jugador, Desp, Estado) :- Estado = continuar, 
                                            Desp2 is Desp + 1, X2 is X + Desp2, Y2 is Y + Desp2, coordenadas(X2, Y2),
-                                           piezaDiagonal([X2,Y2], Jugador, Desp, Estado2), jaqueDDI([X, Y], Jugador, Desp2, Estado2).
+                                           piezaDiagonal([X2,Y2], Jugador, Desp2, Estado2), jaqueDDI([X, Y], Jugador, Desp2, Estado2).
 
 piezaVH([X, Y], Jugador, _, Estado) :- pieza(torre, J, X, Y), J \= Jugador, Estado = jaqueado.
 piezaVH([X, Y], Jugador, _, Estado) :- pieza(dama, J, X, Y), J \= Jugador, Estado = jaqueado.
